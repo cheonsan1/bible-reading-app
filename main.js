@@ -151,9 +151,14 @@
         if (!state.googleWebAppUrl) return;
         try {
             await fetch(state.googleWebAppUrl, {
-                method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                body: JSON.stringify(payload)
             });
-        } catch (e) {}
+        } catch (e) {
+            console.error('구글 시트 연동 에러:', e);
+        }
     }
 
     // 진척도 동기화 헬퍼
