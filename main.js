@@ -94,7 +94,8 @@
         supabaseUrl: '',
         supabaseAnonKey: '',
         googleWebAppUrl: '',
-        isSupabaseActive: false
+        isSupabaseActive: false,
+        formsSelectedDay: null
     };
 
     function getBibleSchedule() { return generateBibleSchedule(state.campaignStartDate); }
@@ -814,10 +815,93 @@
             } else bulkBtn.classList.add('hidden');
         }
 
+        // 7. 설문 취합 (Forms) 탭 갱신
+        const formsDaySelect = document.getElementById('forms-day-select');
+        if (state.currentTab === 'google_forms_sheets' && state.sheetSubTab === 'forms' && formsDaySelect) {
+            if (!state.formsSelectedDay) state.formsSelectedDay = state.selectedDay;
+            if (formsDaySelect.options.length === 0) {
+                schedule.slice(0, 150).forEach(day => {
+                    const opt = document.createElement('option');
+                    opt.value = day.day;
+                    opt.textContent = `Day ${day.day} (${day.date})`;
+                    formsDaySelect.appendChild(opt);
+                });
+            }
+            formsDaySelect.value = state.formsSelectedDay;
+
+            const targetDay = parseInt(state.formsSelectedDay, 10);
+            const formsCompleted = [];
+            const formsUncompleted = [];
+            state.members.forEach(m => {
+                const completedDays = state.progress[m.id]?.completedDays || [];
+                if (completedDays.includes(targetDay)) formsCompleted.push(m);
+                else formsUncompleted.push(m);
+            });
+            const formsRate = state.members.length > 0 ? Math.round((formsCompleted.length / state.members.length) * 100) : 0;
+
+            document.getElementById('forms-radial-percent').textContent = `${formsRate}%`;
+            document.getElementById('forms-radial-progress').setAttribute('stroke-dasharray', `${formsRate}, 100`);
+            document.getElementById('forms-stat-done').textContent = `${formsCompleted.length}명`;
+            document.getElementById('forms-stat-undone').textContent = `${formsUncompleted.length}명`;
+
+            const undoneList = document.getElementById('forms-undone-list');
+            if (undoneList) {
+                undoneList.innerHTML = '';
+                formsUncompleted.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between p-1.5 bg-rose-50 border border-rose-100 rounded-md";
+                    div.innerHTML = `<span class="font-bold text-rose-800">${m.name}</span><span class="text-[9px] text-rose-500">${m.group}</span>`;
+                    undoneList.appendChild(div);
+                });
+            }
+
+            const doneList = document.getElementById('forms-done-list');
+            if (doneList) {
+                doneList.innerHTML = '';
+                formsCompleted.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = "flex items-center justify-between p-1.5 bg-emerald-50 border border-emerald-100 rounded-md text-xs";
+                    div.innerHTML = `<span class="font-bold text-emerald-800">${m.name}</span><span class="text-[9px] text-emerald-600">${m.group}</span>`;
+                    doneList.appendChild(div);
+                });
+            }
+        }
+
         renderMasterGrid(); // 구글시트 격자판 갱신
     }
 
     // --- 복원된 기능 모음 ---
+
+    window.handleFormsDayChange = function(val) {
+        state.formsSelectedDay = val;
+        applyStateToDOM();
+    };
+
+    window.copyKakaoInciteText = function() {
+        const targetDay = parseInt(state.formsSelectedDay || state.selectedDay, 10);
+        const formsUncompleted = [];
+        state.members.forEach(m => {
+            const completedDays = state.progress[m.id]?.completedDays || [];
+            if (!completedDays.includes(targetDay)) formsUncompleted.push(m);
+        });
+
+        const names = formsUncompleted.map(m => m.name).join(', ');
+        const scheduleInfo = getBibleSchedule()[targetDay - 1];
+        
+        const msg = `[천산 성경통독반 권면 알림]\n샬롬! 오늘(Day ${targetDay}, ${scheduleInfo.date})의 통독 범위는 [${scheduleInfo.range}] 입니다.\n아직 완료하지 않으신 성도님들께서는 은혜의 자리로 나아와 말씀을 읽고 스탬프를 꾹 눌러주세요! 🕊️\n\n미완독 성도: ${names}\n\n주님의 은혜가 가득하시길 기도합니다! 🙏`;
+
+        const textarea = document.createElement('textarea');
+        textarea.value = msg;
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showToast("카카오톡 독려 메시지가 클립보드에 복사되었습니다.", "success");
+        } catch (e) {
+            showToast("복사 실패. 수동으로 복사해주세요.", "error");
+        }
+        document.body.removeChild(textarea);
+    };
 
     function triggerDashboardFilter() { applyStateToDOM(); }
     window.setSelectedDayFromCalendar = function(day) { state.selectedDay = day; changeTab('today'); }
