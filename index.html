@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>천산중앙교회 성경통독반</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Nanum+Myeongjo:wght@700;800&family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas-confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Supabase JS Client -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body class="text-stone-800">
+
+<!-- 상단 헤더 영역 -->
+<header class="bg-[#3D4F41] text-[#F3EFE9] shadow-md border-b-2 border-[#D4AF37]/30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
+        <div class="text-center md:text-left mb-3 md:mb-0">
+            <span class="inline-block px-3 py-1 bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold rounded-full mb-1">
+                <i class="fa-solid fa-cross mr-1"></i> 천산교회 성경통독 4기 캠페인
+            </span>
+            <h1 class="text-2xl md:text-3xl font-extrabold holy-font tracking-wide flex items-center justify-center md:justify-start">
+                천산 성경통독반 <span class="text-sm font-normal text-stone-300 ml-2">25주간의 은혜 여정</span>
+                <span id="db-status-badge" class="text-xs bg-amber-500 text-stone-900 px-2 py-0.5 rounded ml-2 font-black">🟡 로컬 기기 저장 모드</span>
+            </h1>
+        </div>
+
+        <!-- 로그인/이름 선택기 -->
+        <div class="flex items-center space-x-2 bg-stone-900/30 p-2 rounded-lg border border-white/10 w-full md:w-auto">
+            <div class="text-right hidden sm:block">
+                <p class="text-[11px] text-stone-300">현재 성도 로그인</p>
+                <p id="header-user-display" class="text-sm font-bold text-white">로그인 안 됨</p>
+            </div>
+            <div id="header-user-avatar" class="text-2xl">👤</div>
+            <select id="user-login-select" onchange="handleSelectLogin(this.value)" class="bg-stone-800 text-white text-xs p-1.5 rounded border border-stone-600 focus:outline-none flex-1 md:flex-initial">
+                <option value="" disabled selected>성도명을 검색해 선택해주세요</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 네비게이션 바 -->
+    <div class="max-w-6xl mx-auto px-4">
+        <nav class="flex space-x-1 overflow-x-auto pb-px">
+            <button onclick="changeTab('today')" id="tab-today" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
+                <i class="fa-solid fa-book-open"></i><span>오늘의 통독</span>
+            </button>
+            <button onclick="changeTab('calendar')" id="tab-calendar" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
+                <i class="fa-solid fa-calendar-days"></i><span>성경 읽기표 (25주)</span>
+            </button>
+            <button onclick="changeTab('dashboard')" id="tab-dashboard" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
+                <i class="fa-solid fa-chart-pie"></i><span>명단 현황판</span>
+            </button>
+            <button onclick="changeTab('juju_records')" id="tab-juju_records" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
+                <i class="fa-solid fa-trophy"></i><span>명예의 전당</span>
+            </button>
+            <button onclick="changeTab('google_forms_sheets')" id="tab-google_forms_sheets" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
+                <i class="fa-solid fa-table-list"></i><span>구글 시트 연동</span>
+            </button>
+            <button onclick="changeTab('grace')" id="tab-grace" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
+                <i class="fa-solid fa-heart"></i><span>은혜 나눔터 & 필사</span>
+            </button>
+            <button onclick="changeTab('admin')" id="tab-admin" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
+                <i class="fa-solid fa-user-gear"></i><span>관리자 도구</span>
+            </button>
+        </nav>
+    </div>
+</header>
+
+<!-- 토스트 알림창 -->
+<div id="toast-container" class="fixed top-5 right-5 z-50 transform translate-x-full transition-transform duration-300 pointer-events-none">
+    <div id="toast" class="bg-stone-900 text-white px-5 py-3 rounded-xl shadow-2xl border border-[#D4AF37]/40 flex items-center space-x-3">
+        <span class="text-[#D4AF37]"><i class="fa-solid fa-check-circle"></i></span>
+        <span id="toast-msg" class="text-sm font-medium">알림 메시지</span>
+    </div>
+</div>
+
+<!-- 커스텀 모달 다이얼로그 -->
+<div id="custom-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 hidden">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-stone-200">
+        <div class="flex items-center space-x-2.5 mb-3">
+            <span class="text-[#3D4F41] text-xl"><i class="fa-solid fa-circle-check"></i></span>
+            <h3 id="modal-title" class="text-lg font-bold text-stone-800">모달 제목</h3>
+        </div>
+        <p id="modal-message" class="text-xs text-stone-600 mb-6 leading-relaxed">모달 설명입니다.</p>
+        <div class="flex justify-end space-x-2">
+            <button id="modal-cancel-btn" class="px-4 py-2 border border-stone-200 rounded-lg text-xs font-bold text-stone-600 hover:bg-stone-105 transition-transform">닫기</button>
+            <button id="modal-confirm-btn" class="px-4 py-2 bg-[#3D4F41] text-white text-xs font-bold rounded-lg hover:scale-105 transition-transform">확인</button>
+        </div>
+    </div>
+</div>
+
+<!-- 메인 콘텐츠 영역 -->
+<main class="flex-grow max-w-6xl w-full mx-auto px-4 py-6">
+
+    <!-- 글로벌 현황 카드 상단 고정 -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-white p-4 rounded-xl border border-[#E9E4DC] shadow-sm flex items-center space-x-3">
+            <div class="p-3 rounded-lg bg-emerald-50 text-emerald-700"><i class="fa-solid fa-users text-xl"></i></div>
+            <div>
+                <p class="text-xs text-stone-500">통독 참여 인원</p>
+                <h3 id="stat-members-count" class="text-xl font-black text-stone-800">0명</h3>
+            </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-[#E9E4DC] shadow-sm flex items-center space-x-3">
+            <div class="p-3 rounded-lg bg-amber-50 text-amber-700"><i class="fa-solid fa-check-double text-xl"></i></div>
+            <div>
+                <p class="text-xs text-stone-500">오늘 완독 성도</p>
+                <h3 id="stat-today-done" class="text-xl font-black text-stone-800">0명</h3>
+            </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-[#E9E4DC] shadow-sm flex items-center space-x-3">
+            <div class="p-3 rounded-lg bg-[#FAF5FF] text-purple-700"><i class="fa-solid fa-clock-rotate-left text-xl"></i></div>
+            <div>
+                <p class="text-xs text-stone-500">오늘 참여율</p>
+                <h3 id="stat-today-rate" class="text-xl font-black text-stone-800">0%</h3>
+            </div>
+        </div>
+        <div class="bg-white p-4 rounded-xl border border-[#E9E4DC] shadow-sm flex items-center space-x-3">
+            <div class="p-3 rounded-lg bg-orange-50 text-orange-700"><i class="fa-solid fa-trophy text-xl"></i></div>
+            <div>
+                <p class="text-xs text-stone-500">총 누적 완주자</p>
+                <h3 id="stat-juju-count" class="text-xl font-black text-stone-800">0명</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. 오늘의 통독 탭 -->
+    <section id="page-today" class="tab-page grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-[#3D4F41]/5 rounded-bl-full pointer-events-none"></div>
+                <div class="flex justify-between items-center mb-4">
+                    <span id="today-day-badge" class="px-3 py-1 bg-[#3D4F41]/10 text-[#3D4F41] font-semibold text-xs rounded-full">Day 1</span>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="adjustSelectedDay(-1)" class="p-2 text-stone-500 hover:bg-stone-100 rounded"><i class="fa-solid fa-chevron-left"></i></button>
+                        <span id="today-date-text" class="text-sm font-bold px-2">7/6</span>
+                        <button onclick="adjustSelectedDay(1)" class="p-2 text-stone-500 hover:bg-stone-100 rounded"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                </div>
+                <h2 id="today-bible-range" class="text-3xl font-extrabold text-[#3D4F41] mb-2 holy-font">창세기 1~8장</h2>
+                <p class="text-stone-600 text-sm leading-relaxed mb-6">
+                    “주의 말씀은 내 발에 등이요 내 길에 빛이니이다.” (시편 119:105)<br/>
+                    오늘의 성경 범위를 정성스럽게 통독하신 뒤, 기도로 은혜를 구하고 아래 스탬프를 눌러 완독 사실을 증명해 보세요.
+                </p>
+
+                <div class="flex flex-col items-center justify-center p-6 border-2 border-dashed border-stone-200 rounded-xl bg-stone-50/50">
+                    <div class="mb-4 text-center">
+                        <p class="text-sm font-semibold text-stone-500">완독 후 아래 버튼을 클릭하여 스탬프를 찍어주세요.</p>
+                        <p id="stamp-target-user" class="text-xs text-rose-500 mt-1 font-bold">⚠️ 상단 우측에서 본인의 성함을 먼저 선택(로그인)해 주시기 바랍니다.</p>
+                    </div>
+
+                    <div class="relative w-36 h-36 flex items-center justify-center">
+                        <!-- 완독 도장 레이어 -->
+                        <div id="stamp-mark" class="absolute inset-0 flex items-center justify-center bg-transparent stamp-active z-10 select-none hidden">
+                            <div class="w-32 h-32 border-4 border-emerald-600/70 rounded-full flex flex-col items-center justify-center text-emerald-600 font-black text-lg bg-white/90 shadow-lg transform rotate-12">
+                                <div class="text-sm tracking-widest uppercase">천산교회</div>
+                                <div class="text-2xl font-extrabold tracking-wide my-px">완 독</div>
+                                <div id="stamp-date" class="text-[9px] text-stone-400">7/6</div>
+                            </div>
+                        </div>
+
+                        <button id="stamp-trigger-btn" onclick="toggleTodayStamp()" class="w-28 h-28 rounded-full flex flex-col items-center justify-center text-white font-extrabold text-sm transition-all focus:ring-4 bg-stone-400 ring-stone-300 shadow-md">
+                            <i class="fa-solid fa-stamp text-2xl mb-1"></i>
+                            <span id="stamp-btn-text">선택 요망</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 은혜 한줄 공유 카드 -->
+            <div class="bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md">
+                <h3 class="text-lg font-bold text-[#3D4F41] mb-2 flex items-center"><i class="fa-solid fa-quote-left text-stone-300 mr-2 text-xl"></i>오늘의 묵상 한 줄 나누기</h3>
+                <p class="text-xs text-stone-500 mb-3">묵상을 적어 공유하면 &quot;은혜 나눔터&quot; 피드에 등록되어 교회 성도들과 실시간 소통이 이루어집니다.</p>
+                <textarea id="today-grace-input" rows="3" placeholder="예: 첫걸음을 떼게 하신 주님, 낙심하지 않고 성령님의 인도하심을 따라 끝까지 통독 완주하게 하옵소서." class="w-full p-3 rounded-lg border border-stone-200 focus:ring-2 focus:ring-[#3D4F41] focus:outline-none text-sm bg-[#FAF9F6] resize-none"></textarea>
+                <div class="flex justify-end mt-2">
+                    <button onclick="submitTodayGrace()" class="px-5 py-2.5 bg-[#3D4F41] hover:bg-[#2C3B30] text-white text-xs font-bold rounded-lg shadow-sm transition-transform hover:-translate-y-px"><i class="fa-solid fa-paper-plane mr-1.5"></i> 은혜 나누기</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <div class="bg-[#FAF5EE] p-6 rounded-2xl border border-[#D4AF37]/30 shadow-md relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-24 h-24 bg-[#D4AF37]/10 rounded-full"></div>
+                <h3 class="text-lg font-bold text-[#3D4F41] mb-2 flex items-center"><i class="fa-solid fa-pen-nib mr-2 text-[#D4AF37]"></i>토요일 필사노트 업로드</h3>
+                <p class="text-xs text-stone-600 leading-relaxed mb-4">매주 토요일에는 주간 읽은 말씀 중 가장 큰 은혜를 입은 구절을 필사노트에 정성껏 적어 사진을 공유해 주세요.</p>
+                <button onclick="changeTab('grace')" class="w-full py-2.5 bg-[#D4AF37] hover:bg-[#C59E28] text-white text-xs font-bold rounded-lg shadow-md flex items-center justify-center space-x-2"><i class="fa-solid fa-camera"></i> <span>필사노트 갤러리 등록하기</span></button>
+            </div>
+            <div class="bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md">
+                <h4 class="text-sm font-bold text-stone-700 mb-3 border-b pb-2 flex items-center"><i class="fa-solid fa-circle-info text-stone-400 mr-2"></i>성경통독 참여 규정</h4>
+                <ul class="text-xs text-stone-600 space-y-2.5">
+                    <li class="flex items-start"><span class="text-emerald-600 mr-1.5 font-bold">1.</span><span>가급적 매일 정해진 아침 혹은 저녁 조용한 개인 기도실을 열어 말씀을 읽습니다.</span></li>
+                    <li class="flex items-start"><span class="text-emerald-600 mr-1.5 font-bold">2.</span><span>어제 밀린 일정은 성경 읽기표(캘린더) 탭에서 이전 일자를 클릭하여 수동 완성할 수 있습니다.</span></li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 2. 성경 읽기표 (25주) 탭 -->
+    <section id="page-calendar" class="tab-page bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md hidden animate-fade-in">
+        <div class="mb-6">
+            <h2 class="text-2xl font-bold text-[#3D4F41] holy-font">천산 성경통독 25주 완독표</h2>
+            <p id="calendar-date-summary" class="text-xs text-stone-500 mt-1">개강일: 2026-07-06 | 일요일(주일) 제외 월~토 일정표</p>
+        </div>
+        <div id="calendar-grid-container" class="space-y-4">
+            <!-- 동적으로 생성될 25개 주간 카드 컨테이너 -->
+        </div>
+    </section>
+
+    <!-- 3. 명단 현황판 탭 -->
+    <section id="page-dashboard" class="tab-page bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md hidden animate-fade-in">
+        <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-[#3D4F41] holy-font">통독 참여 성도 실시간 현황판</h2>
+                <p class="text-xs text-stone-500 mt-1">성도님들의 누적 완독일수와 달성 현황을 모아보며 기도로 함께 기쁨을 나눕니다.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+                <input type="text" id="dashboard-search" oninput="triggerDashboardFilter()" placeholder="성명 검색..." class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
+                <select id="dashboard-filter-group" onchange="triggerDashboardFilter()" class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
+                    <option value="all">전체 목장조 보기</option>
+                    <option value="사랑 1조">사랑 1조</option>
+                    <option value="소망 2조">소망 2조</option>
+                    <option value="믿음 3조">믿음 3조</option>
+                    <option value="온유 4조">온유 4조</option>
+                    <option value="자비 5조">자비 5조</option>
+                    <option value="은혜 6조">은혜 6조</option>
+                    <option value="화평 7조">화평 7조</option>
+                    <option value="기쁨 8조">기쁨 8조</option>
+                    <option value="인내 9조">인내 9조</option>
+                </select>
+            </div>
+        </div>
+        <div id="dashboard-member-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <!-- 성도 카드 그리드 바인딩 -->
+        </div>
+    </section>
+
+    <!-- 4. 명예의 전당 탭 -->
+    <section id="page-juju_records" class="tab-page bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md space-y-6 hidden animate-fade-in">
+        <div class="flex flex-col md:flex-row md:items-center justify-between border-b pb-4">
+            <div>
+                <h2 class="text-2xl font-bold text-[#3D4F41] holy-font flex items-center gap-1.5"><i class="fa-solid fa-trophy text-[#D4AF37]"></i> 성경통독 완주 명예의 전당</h2>
+                <p class="text-xs text-stone-500 mt-1">25주 150일 전체를 완독하여 1독, 2독, 3독을 달성하신 영적 승리자들의 전당입니다.</p>
+            </div>
+        </div>
+        <div class="flex gap-2 flex-wrap pb-2">
+            <button onclick="filterJujuDok(1)" id="juju-btn-1" class="px-4 py-2 rounded-full border text-xs font-semibold bg-purple-100 border-purple-300 text-purple-800">🏅 1독 완주자</button>
+            <button onclick="filterJujuDok(2)" id="juju-btn-2" class="px-4 py-2 rounded-full border text-xs font-semibold bg-white border-stone-200 text-stone-600">🏅 2독 완주자</button>
+            <button onclick="filterJujuDok(3)" id="juju-btn-3" class="px-4 py-2 rounded-full border text-xs font-semibold bg-white border-stone-200 text-stone-600">🏅 3독 이상 완주자</button>
+        </div>
+        <div id="juju-hall-container" class="bg-stone-50 p-5 rounded-2xl border border-stone-200">
+            <!-- 명예 완주자 바인딩 -->
+        </div>
+        <div class="p-5 border border-stone-200 rounded-2xl bg-white shadow-inner">
+            <h3 class="text-sm font-bold text-stone-800 mb-2">성경 완주 누적 독수 수동 제어</h3>
+            <div class="flex flex-wrap gap-2 items-center mb-4">
+                <input type="text" id="juju-search" oninput="renderJujuPage()" placeholder="성명 검색..." class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
+                <button onclick="setJujuListViewMode('active')" id="juju-view-active" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#3D4F41] text-white">현재 기수 멤버</button>
+                <button onclick="setJujuListViewMode('all')" id="juju-view-all" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-stone-100 text-stone-600">전체 기수/삭제 명단 포함</button>
+            </div>
+            <div id="juju-control-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+                <!-- 제어판 리스트 바인딩 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 5. 구글 시트 & 설문지 대시보드 탭 -->
+    <section id="page-google_forms_sheets" class="tab-page bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md space-y-6 hidden animate-fade-in">
+        <div class="border-b pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-[#3D4F41] holy-font flex items-center gap-2"><i class="fa-solid fa-table text-emerald-600"></i> 구글 시트 & 설문 연동 대시보드</h2>
+                <p class="text-xs text-stone-500 mt-1">구글 폼 취합 통계처럼 일자별 데이터를 취합하고, 구글 시트처럼 마스터 그리드를 수동 제어합니다.</p>
+            </div>
+            <div class="flex bg-stone-100 p-1 rounded-lg text-xs font-semibold">
+                <button onclick="changeSheetSubTab('forms')" id="subtab-forms" class="px-3 py-1.5 rounded-md transition-all bg-white shadow text-slate-800"><i class="fa-solid fa-list-check mr-1 text-purple-600"></i> 설문 취합 (Forms)</button>
+                <button onclick="changeSheetSubTab('sheets')" id="subtab-sheets" class="px-3 py-1.5 rounded-md transition-all text-slate-500"><i class="fa-solid fa-table-cells mr-1 text-emerald-600"></i> 마스터 격자판 (Sheets)</button>
+                <button onclick="changeSheetSubTab('integration')" id="subtab-integration" class="px-3 py-1.5 rounded-md transition-all text-slate-500"><i class="fa-solid fa-link mr-1 text-blue-600"></i> 자동 연동 가이드</button>
+            </div>
+        </div>
+
+        <!-- 5-1: 설문 취합 (Forms) -->
+        <div id="sheet-subpage-forms" class="sub-tab-page space-y-6">
+            <div class="bg-purple-50/50 border border-purple-200/50 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-purple-600 rounded-lg text-white flex items-center justify-center text-lg"><i class="fa-solid fa-file-waveform"></i></div>
+                    <div>
+                        <h3 class="text-sm font-bold text-purple-900">구글 설문지형 일자별 통계 취합</h3>
+                        <p class="text-[11px] text-purple-700">단톡방의 "완독" 메시지 정리를 한눈에 요약하고 복사할 수 있습니다.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-stone-500 font-semibold">조회 대상 일차:</span>
+                    <select id="forms-day-select" onchange="handleFormsDayChange(this.value)" class="p-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none font-bold">
+                        <!-- 동적 날짜 배정 -->
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm text-center flex flex-col items-center justify-center">
+                    <h4 class="text-xs font-bold text-stone-500 mb-4">선택 일차 완독률 통계</h4>
+                    <div class="relative w-36 h-36 flex items-center justify-center mb-2">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                            <path class="text-stone-100" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path id="forms-radial-progress" class="text-purple-600" stroke-width="4" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <div class="absolute flex flex-col items-center justify-center">
+                            <span id="forms-radial-percent" class="text-2xl font-black text-purple-900">0%</span>
+                            <span class="text-[9px] text-stone-400">완독율</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-stone-600 font-semibold mt-2">완독: <span id="forms-stat-done" class="text-purple-600 font-bold">0명</span> | 미완독: <span id="forms-stat-undone" class="text-rose-500 font-bold">0명</span></p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm md:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between border-b pb-2 mb-3">
+                            <h4 class="text-xs font-bold text-rose-700 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> 미완독 성도 권면하기</h4>
+                            <button onclick="copyKakaoInciteText()" class="px-2.5 py-1.5 bg-[#FEE500] hover:bg-[#F0D100] text-[#191919] font-black text-[10px] rounded-lg shadow-sm transition-transform hover:-translate-y-0.5 flex items-center gap-1"><i class="fa-solid fa-comment text-xs"></i> 카톡 독려글 복사</button>
+                        </div>
+                        <div id="forms-undone-list" class="max-h-36 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                            <!-- 미완독자 바인딩 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <h4 class="text-xs font-bold text-[#3D4F41] mb-3 pb-2 border-b flex items-center gap-1.5"><i class="fa-solid fa-square-check text-emerald-600"></i> 선택 일차 말씀 통독 완료 성도 명단</h4>
+                <div id="forms-done-list" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                    <!-- 완독자 바인딩 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 5-2: 마스터 격자판 (Sheets) -->
+        <div id="sheet-subpage-sheets" class="sub-tab-page space-y-4 hidden">
+            <div class="bg-emerald-50/50 border border-emerald-200/50 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 text-xs">
+                <div>
+                    <h3 class="font-bold text-emerald-900">구글 스프레드시트 150일 마스터 그리드</h3>
+                    <p class="text-[11px] text-emerald-700 mt-0.5">성도 명단의 실시간 통독 진행표입니다. 빈 셀을 클릭하면 수동 완독 마킹 전환이 이루어집니다.</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="handleDownloadCsv()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-transform hover:-translate-y-px"><i class="fa-solid fa-file-excel mr-1"></i> 시트 백업용 CSV 다운로드</button>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="grid-search" oninput="renderMasterGrid()" placeholder="성명 검색..." class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
+                <select id="grid-group-filter" onchange="renderMasterGrid()" class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
+                    <option value="all">전체 조 보기</option>
+                    <option value="사랑 1조">사랑 1조</option>
+                    <option value="소망 2조">소망 2조</option>
+                    <option value="믿음 3조">믿음 3조</option>
+                    <option value="온유 4조">온유 4조</option>
+                    <option value="자비 5조">자비 5조</option>
+                </select>
+                <span class="text-[10px] text-stone-400 self-center">💡 셀을 터치하면 성도 상태가 토글(녹색=완독, 백색=미완독)됩니다.</span>
+            </div>
+            <div class="overflow-auto max-h-[500px] border border-stone-200 rounded-lg custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs table-fixed">
+                    <thead class="bg-stone-50 sticky top-0 z-20 shadow-sm">
+                        <tr id="grid-header-tr">
+                            <!-- 헤더 동적 생성 -->
+                        </tr>
+                    </thead>
+                    <tbody id="grid-body-container" class="divide-y divide-stone-100">
+                        <!-- 마스터 그리드 바인딩 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 5-3: 연동 가이드 (Integration) -->
+        <div id="sheet-subpage-integration" class="sub-tab-page space-y-6 hidden">
+            <div class="bg-blue-50 border border-blue-200/50 p-5 rounded-xl">
+                <h3 class="text-sm font-bold text-blue-900 mb-2">⚡ 실시간 구글 스프레드시트 양방향 연동</h3>
+                <p class="text-xs text-blue-800 leading-relaxed">성도님들이 스탬프를 찍으면 구글 시트에 "완독"이 자동 기록되며, 필사 사진을 올리면 묵상 텍스트와 보존용 파일 링크가 실시간 구글 시트 기록창에 자동 기입됩니다. 관리자 도구에서 간편히 구글 스크립트 배포 주소를 지정하세요.</p>
+            </div>
+
+            <div class="bg-white p-5 border border-stone-200 rounded-2xl shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-2">
+                    <h4 class="text-sm font-bold text-stone-800 flex items-center gap-1.5"><i class="fa-solid fa-code text-blue-600"></i> 구글 Apps Script(code.gs) 연동 코드</h4>
+                    <div class="flex space-x-2">
+                        <button onclick="copyAppsScriptToClipboard()" class="px-3 py-1.5 bg-stone-800 hover:bg-stone-900 text-white rounded text-xs font-bold flex items-center gap-1"><i class="fa-regular fa-copy"></i> 코드 복사하기</button>
+                        <button onclick="downloadAppsScriptFile()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold flex items-center gap-1"><i class="fa-solid fa-file-arrow-down"></i> 📄 code.gs 다운로드</button>
+                    </div>
+                </div>
+                <p class="text-xs text-stone-500">이 코드를 구글 스프레드시트의 [확장 프로그램] -> [Apps Script] 창에 붙여넣어 배포하시면 실시간 자동 연동이 활성화됩니다.</p>
+                <div class="relative bg-stone-900 text-stone-100 p-4 rounded-xl text-xs overflow-x-auto">
+                    <pre id="apps-script-preview-code" class="font-mono text-left select-all">
+/**
+ * 천산중앙교회 성경통독 25주 통합 관리 양방향 시트 연동 스크립트
+ */
+
+function doPost(e) {
+  var params = JSON.parse(e.postData.contents);
+  var action = params.action;
+  
+  if (action === 'progress') {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    var memberName = params.memberName;
+    var completedDays = params.completedDays;
+    
+    var data = sheet.getDataRange().getValues();
+    var targetRow = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][1] == memberName) { 
+        targetRow = i + 1;
+        break;
+      }
+    }
+    
+    if (targetRow == -1) {
+      sheet.appendRow(["W1", memberName, params.group, completedDays.length]);
+      targetRow = sheet.getLastRow();
+    }
+    
+    sheet.getRange(targetRow, 4).setValue(completedDays.length);
+    
+    for (var d = 1; d <= 150; d++) {
+      var colIndex = d + 4; 
+      if (completedDays.indexOf(d) > -1) {
+        sheet.getRange(targetRow, colIndex).setValue("완독");
+      } else {
+        sheet.getRange(targetRow, colIndex).setValue("");
+      }
+    }
+  } 
+  else if (action === 'transcription') {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var secondSheetName = "필사 및 묵상 나눔";
+    var memoSheet = ss.getSheetByName(secondSheetName);
+    
+    if (!memoSheet) {
+      memoSheet = ss.insertSheet(secondSheetName);
+      memoSheet.appendRow(["기입 시각", "성도명", "소속 조", "성경 범위", "묵상 내용", "필사노트 사진 주소"]);
+    }
+    
+    var timeStamp = new Date();
+    var memberName = params.memberName;
+    var group = params.group;
+    var verse = params.verse;
+    var content = params.content;
+    var imageUrl = params.imageUrl; 
+    
+    memoSheet.appendRow([timeStamp, memberName, group, verse, content, imageUrl]);
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({result: "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 6. 은혜 나눔터 & 필사 탭 -->
+    <section id="page-grace" class="tab-page space-y-6 hidden animate-fade-in">
+        <div id="transcribe-section" class="bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md">
+            <h2 class="text-2xl font-bold text-[#3D4F41] mb-2 holy-font flex items-center"><i class="fa-solid fa-feather-pointed mr-2 text-[#D4AF37]"></i>필사노트 및 묵상 업로드</h2>
+            <p class="text-xs text-stone-500 mb-6">스마트폰으로 작성한 필사노트 사진을 가져와 올리거나, 캔버스를 터치하여 은혜로운 필사 구절을 직접 그려서 기록에 남겨주세요.</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 mb-1">1. 성경 통독 범위 지정</label>
+                        <select id="grace-verse-select" class="w-full p-2.5 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-[#3D4F41] text-xs bg-[#FAF9F6]"></select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 mb-1">2. 종이 노트 이미지 업로드 (선택)</label>
+                        <input type="file" accept="image/*" onchange="handleGraceFileLoad(event)" class="w-full p-2 rounded border border-stone-200 text-xs text-stone-600 focus:outline-none bg-[#FAF9F6]">
+                        <p class="text-[10px] text-stone-400 mt-1">※ 손으로 쓴 은혜의 노트를 촬영하여 고화질 보존 이미지로 연동 등록 가능합니다.</p>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-stone-700 mb-1">3. 말씀 묵상 소감문</label>
+                        <textarea id="grace-text-content" rows="4" placeholder="주의 말씀과 동행하며 나눈 감사와 기도의 한 구절을 기록하여 등록하세요." class="w-full p-3 rounded-lg border border-stone-200 focus:outline-none focus:ring-1 focus:ring-[#3D4F41] text-xs bg-[#FAF9F6] resize-none"></textarea>
+                    </div>
+                    <div class="flex justify-end space-x-2">
+                        <button onclick="resetGraceCanvas()" class="px-4 py-2 border border-stone-200 rounded-lg text-xs font-bold text-stone-600 hover:bg-stone-50">초기화</button>
+                        <button onclick="submitGraceTranscription()" class="px-5 py-2 bg-[#3D4F41] text-white text-xs font-bold rounded-lg shadow-md">나눔터에 묵상 등록</button>
+                    </div>
+                </div>
+
+                <!-- 터치 서명 드로잉 보드 -->
+                <div class="border border-stone-200 rounded-xl p-4 bg-stone-50 flex flex-col justify-between">
+                    <div class="mb-2">
+                        <h4 class="text-xs font-bold text-stone-700 flex justify-between items-center">
+                            <span>실시간 디지털 터치 서명 & 말씀 드로잉</span>
+                            <span class="text-[9px] bg-[#D4AF37]/20 text-stone-600 px-1.5 py-0.5 rounded">터치 및 드래그</span>
+                        </h4>
+                        <p class="text-[9px] text-stone-400 mt-0.5">자유롭게 마우스 혹은 스마트폰의 드래그를 이용해 다짐과 사인, 혹은 손글씨 캘리를 남겨보세요.</p>
+                    </div>
+                    <div class="bg-white border border-stone-200 rounded-lg overflow-hidden h-48 relative">
+                        <!-- 이미지 업로드 시 미리보기 및 캔버스 스위칭 -->
+                        <div id="canvas-image-preview-layer" class="absolute inset-0 bg-stone-100 flex items-center justify-center hidden">
+                            <img id="uploaded-image-preview" src="" alt="preview" class="max-h-full max-w-full object-contain">
+                            <button onclick="clearGraceImage()" class="absolute top-2 right-2 bg-stone-900/80 text-white rounded-full p-1.5 text-xs hover:bg-stone-900"><i class="fa-solid fa-trash"></i></button>
+                        </div>
+                        <canvas id="grace-drawing-canvas" width="400" height="192" class="w-full h-full block cursor-crosshair bg-stone-50"></canvas>
+                    </div>
+                    <div class="flex items-center justify-between mt-3">
+                        <div class="flex space-x-1">
+                            <button onclick="setGracePenColor('#222522')" class="w-5 h-5 rounded-full border border-white focus:outline-none ring-2 ring-stone-400 bg-[#222522]"></button>
+                            <button onclick="setGracePenColor('#B91C1C')" class="w-5 h-5 rounded-full border border-white focus:outline-none bg-[#B91C1C]"></button>
+                            <button onclick="setGracePenColor('#047857')" class="w-5 h-5 rounded-full border border-white focus:outline-none bg-[#047857]"></button>
+                            <button onclick="setGracePenColor('#1D4ED8')" class="w-5 h-5 rounded-full border border-white focus:outline-none bg-[#1D4ED8]"></button>
+                            <button onclick="setGracePenColor('#D4AF37')" class="w-5 h-5 rounded-full border border-white focus:outline-none bg-[#D4AF37]"></button>
+                        </div>
+                        <span class="text-[10px] text-stone-400">브러시 색상</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="text-xl font-bold text-[#3D4F41] mb-4 holy-font">공동체 말씀 나눔 피드</h3>
+            <div id="grace-feed-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- 피드 카드 바인딩 -->
+            </div>
+        </div>
+    </section>
+
+    <!-- 7. 관리자 도구 탭 -->
+    <section id="page-admin" class="tab-page hidden animate-fade-in">
+        <div id="admin-login-panel" class="bg-white p-8 rounded-2xl border border-[#E9E4DC] shadow-md max-w-sm mx-auto my-12 text-center">
+            <div class="w-16 h-16 bg-[#3D4F41]/10 text-[#3D4F41] rounded-full flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-lock text-2xl"></i></div>
+            <h2 class="text-xl font-bold text-stone-800 holy-font mb-2">관리자 인증 패널</h2>
+            <p class="text-xs text-stone-500 mb-6">운영 설정 및 백업, 명단 대량 편집을 위한 패스워드를 기입하세요.</p>
+            <div class="space-y-4">
+                <input type="password" id="admin-pass-input" placeholder="비밀번호 입력" class="w-full p-2.5 text-center text-sm rounded-lg border border-stone-300 focus:outline-none focus:ring-1 focus:ring-[#3D4F41] tracking-widest">
+                <button onclick="authenticateAdmin()" class="w-full py-2.5 bg-[#3D4F41] text-white text-xs font-bold rounded-lg transition-colors hover:bg-[#2C3B30]">인증하기</button>
+            </div>
+        </div>
+
+        <div id="admin-console-panel" class="bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
+                <div>
+                    <h2 class="text-2xl font-bold text-[#3D4F41] holy-font">4기 통독반 종합 행정콘솔</h2>
+                    <p class="text-xs text-stone-500 mt-1">성경 범위 날짜 및 수파베이스, 구글 시트, 명단 일괄 편집 기능을 제어합니다.</p>
+                </div>
+                <button onclick="adminLogout()" class="px-3 py-1.5 border border-stone-200 hover:bg-stone-50 text-stone-600 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"><i class="fa-solid fa-lock-open"></i><span>관리자 로그아웃</span></button>
+            </div>
+
+            <!-- Supabase & Google Sheets Webhook 연동 -->
+            <div class="bg-emerald-50/50 border border-emerald-300/80 p-5 rounded-2xl space-y-4">
+                <h3 class="text-sm font-bold text-emerald-900 flex items-center gap-1.5"><i class="fa-solid fa-cloud"></i> 🌐 실시간 Supabase 클라우드 & 구글 시트 API 연동 관리</h3>
+                <p class="text-xs text-emerald-800">서버 정보 및 구글 가입 스크립트 배포 주소를 지정하여 실시간 연동을 구성할 수 있습니다.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-stone-600 mb-1">Supabase Project URL</label>
+                        <input id="set-sb-url" type="text" placeholder="https://yourproject.supabase.co" class="w-full p-2 border border-stone-300 rounded text-xs focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-stone-600 mb-1">Supabase Anon Key</label>
+                        <input id="set-sb-key" type="password" placeholder="your-anon-api-key" class="w-full p-2 border border-stone-300 rounded text-xs focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-bold text-stone-600 mb-1">Google Apps Script Web App URL (구글 시트 연동 주소)</label>
+                        <input id="set-g-url" type="text" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-2 border border-stone-300 rounded text-xs focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                </div>
+                <div class="flex justify-end pt-1">
+                    <button onclick="saveCloudSettings()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold shadow transition-transform hover:-translate-y-px">연동 정보 저장하기</button>
+                </div>
+            </div>
+
+            <!-- 캠페인 개시 시작일 설정 -->
+            <div class="bg-amber-50/50 border border-amber-200 p-5 rounded-2xl space-y-3">
+                <h3 class="text-sm font-bold text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-calendar-days text-[#D4AF37]"></i> 제4기 성경통독 시작일 설정 (날짜 조정)</h3>
+                <p class="text-xs text-amber-700 leading-relaxed">시작일을 변경하면 150일(25주)의 전체 성경 읽기표 스케줄의 실제 날짜가 주일(일요일)을 제외하고 월~토요일 기준으로 자동 재정렬됩니다.</p>
+                <div class="flex items-center space-x-3">
+                    <input type="date" id="admin-campaign-start-date" onchange="saveCampaignStartDate(this.value)" class="p-2.5 text-xs rounded-lg border border-amber-300 focus:outline-none font-bold">
+                    <span class="text-xs font-semibold text-stone-500">지정된 4기 시작일</span>
+                </div>
+            </div>
+            
+            <!-- 📱 시스템 소스코드(HTML) 다운로드/공유 영역 (관리자만 볼 수 있게 이동됨) -->
+            <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl space-y-3">
+                <h3 class="text-sm font-bold text-blue-900 flex items-center gap-1.5"><i class="fa-solid fa-file-code"></i> 시스템 통합 소스코드(index.html) 백업 및 공유</h3>
+                <p class="text-xs text-blue-700 leading-relaxed">서버에 배포할 이 시스템의 통합 HTML 소스코드 파일을 관리자의 기기에 즉시 저장하거나 공유합니다.</p>
+                <button onclick="downloadSelfHTML()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded shadow-sm text-xs font-bold transition-transform hover:-translate-y-px flex items-center justify-center gap-1.5 w-full sm:w-auto">
+                    <i class="fa-solid fa-download"></i> index.html 소스코드 다운로드
+                </button>
+            </div>
+
+            <!-- 명단 및 대량 등록, 백업 허브 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-b pb-6">
+                <div class="bg-stone-50 p-5 rounded-xl border border-stone-200">
+                    <h3 class="text-sm font-bold text-stone-800 mb-2">성도 명단 일괄 등록</h3>
+                    <p class="text-xs text-stone-500 mb-4">줄바꿈을 기준으로 여러 성도의 성함을 한 번에 등록해 통독반 명단을 바로 구축합니다.</p>
+                    <div class="space-y-3">
+                        <textarea id="admin-names" rows="4" placeholder="홍길동&#10;이순신&#10;신사임당" class="w-full p-2 text-xs rounded border border-stone-300 focus:outline-none focus:ring-1"></textarea>
+                        <div class="flex space-x-2">
+                            <input id="admin-group" type="text" placeholder="지정할 조명 (예: 소망 2조)" class="p-2 text-xs rounded border border-stone-300 flex-1">
+                            <button onclick="submitBulkMembers()" class="px-4 py-2 bg-[#3D4F41] text-white text-xs font-bold rounded min-w-[80px]">추가 등록</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-stone-50 p-5 rounded-xl border border-stone-200 flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-stone-800 mb-1">통합 데이터 내보내기 및 복원</h3>
+                        <p class="text-xs text-stone-500 leading-relaxed mb-4">기수 변경 시 성도들의 완독 기록, 은혜 묵상, 명예의 전당 완주독(1,2,3독) 데이터를 안전하게 파일로 백업하거나 복원합니다.</p>
+                    </div>
+                    <div class="space-y-2">
+                        <button onclick="handleExportJsonBackup()" class="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded shadow-sm transition-colors flex items-center justify-center gap-1.5"><i class="fa-solid fa-file-export"></i> 통합 백업 데이터 파일 다운로드 (.json)</button>
+                        <label class="w-full py-2.5 bg-stone-800 hover:bg-stone-900 text-white text-xs font-bold rounded shadow-sm transition-colors flex items-center justify-center gap-1.5 cursor-pointer text-center">
+                            <i class="fa-solid fa-file-import"></i> 백업 파일 선택하여 복원하기 (.json)
+                            <input type="file" accept=".json" onchange="handleImportJsonBackup(event)" class="hidden">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 성도 명단 테이블 및 다중 벌크 삭제 제어 -->
+            <div>
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
+                    <h3 class="text-sm font-bold text-stone-800">통독반 총 명단 및 완독 성적표</h3>
+                    <button id="admin-bulk-delete-btn" onclick="executeBulkDelete()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow-sm transition-transform hover:-translate-y-px hidden"><i class="fa-solid fa-trash-can mr-1"></i> <span>선택 삭제 (0명)</span></button>
+                </div>
+                <div class="overflow-x-auto border border-stone-200 rounded-lg">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-stone-100 text-stone-700">
+                                <th class="p-3 border-b text-center w-12">
+                                    <input type="checkbox" id="admin-bulk-select-all" onchange="toggleAllAdminCheckboxes(this.checked)" class="rounded text-[#3D4F41] focus:ring-[#3D4F41] cursor-pointer">
+                                </th>
+                                <th class="p-3 font-bold border-b">성함</th>
+                                <th class="p-3 font-bold border-b">소속 조</th>
+                                <th class="p-3 font-bold border-b">누적 완독일수</th>
+                                <th class="p-3 font-bold border-b">달성률</th>
+                                <th class="p-3 font-bold border-b">완주 회수</th>
+                                <th class="p-3 font-bold border-b">관리</th>
+                            </tr>
+                        </thead>
+                        <tbody id="admin-member-table-body" class="divide-y divide-stone-100 bg-white">
+                            <!-- 로딩 성도 루프 바인딩 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="bg-stone-900 text-stone-400 py-8 border-t border-stone-800 text-xs mt-12">
+    <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="text-center md:text-left">
+            <p class="font-bold text-stone-300">천산 성경통독반 온라인 확인 시스템</p>
+            <p class="mt-1 text-stone-500">25주간(150일) 매일 하나님의 음성에 귀 기울이며 기쁨의 삶을 살아가는 성도들의 숲</p>
+        </div>
+        <div class="flex space-x-4">
+            <span class="text-[10px] px-2.5 py-1 bg-stone-800 text-stone-300 rounded-full">2026 캠페인 주관</span>
+            <span class="text-[10px] px-2.5 py-1 bg-[#D4AF37]/20 text-[#D4AF37] rounded-full">예수 충만, 말씀 충만!</span>
+        </div>
+    </div>
+</footer>
+
+<script src="./main.js"></script>
+</body>
+</html>
