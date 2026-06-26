@@ -172,8 +172,8 @@
 
     async function initApp() {
         state.campaignStartDate = localStorage.getItem('bible_campaign_start_date') || '2026-07-06';
-        state.supabaseUrl = localStorage.getItem('chunsan_supabase_url') || '';
-        state.supabaseAnonKey = localStorage.getItem('chunsan_supabase_key') || '';
+        state.supabaseUrl = 'https://xgkskkwpmukfjlcbgylv.supabase.co';
+        state.supabaseAnonKey = 'sb_publishable_KTG9l2yhPQOD9r89n3GmwA_CNH5QQNk';
         state.googleWebAppUrl = localStorage.getItem('chunsan_google_web_app_url') || '';
 
         document.getElementById('admin-campaign-start-date').value = state.campaignStartDate;
