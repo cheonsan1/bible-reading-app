@@ -81,6 +81,7 @@
         currentTab: 'today',
         sheetSubTab: 'forms',
         campaignStartDate: '2026-07-06',
+        campaignCohort: '4',
         members: [],
         progress: {},
         transcriptions: [],
@@ -178,11 +179,15 @@
 
     async function initApp() {
         state.campaignStartDate = localStorage.getItem('bible_campaign_start_date') || '2026-07-06';
+        state.campaignCohort = localStorage.getItem('bible_campaign_cohort') || '4';
         state.supabaseUrl = 'https://xgkskkwpmukfjlcbgylv.supabase.co';
         state.supabaseAnonKey = 'sb_publishable_KTG9l2yhPQOD9r89n3GmwA_CNH5QQNk';
         state.googleWebAppUrl = localStorage.getItem('chunsan_google_web_app_url') || '';
 
         document.getElementById('admin-campaign-start-date').value = state.campaignStartDate;
+        if (document.getElementById('admin-campaign-cohort')) {
+            document.getElementById('admin-campaign-cohort').value = state.campaignCohort;
+        }
 
         const today = new Date();
         const startCamp = new Date(state.campaignStartDate);
@@ -608,6 +613,14 @@
         applyStateToDOM();
     }
 
+    function saveCampaignCohort(val) {
+        if (!val) return;
+        state.campaignCohort = val;
+        localStorage.setItem('bible_campaign_cohort', val);
+        showToast("기수 변경 완료", "success");
+        applyStateToDOM();
+    }
+
     // 명단 삭제 연동
     function toggleAllAdminCheckboxes(isChecked) {
         if (isChecked) state.selectedMemberIds = state.members.map(m => m.id);
@@ -682,6 +695,11 @@
         const schedule = getBibleSchedule();
         const activeDayInfo = schedule[state.selectedDay - 1] || schedule[0];
         const dailyAnal = getDailyAnalytics();
+
+        for(let i=1; i<=4; i++) {
+            const el = document.getElementById(`cohort-display-${i}`);
+            if(el) el.textContent = state.campaignCohort;
+        }
 
         // 1. 통계판 갱신
         document.getElementById('stat-members-count').textContent = `${state.members.length}명`;

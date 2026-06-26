@@ -24,7 +24,7 @@
     <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between">
         <div class="text-center md:text-left mb-3 md:mb-0">
             <span class="inline-block px-3 py-1 bg-[#D4AF37]/20 border border-[#D4AF37]/40 text-[#D4AF37] text-xs font-semibold rounded-full mb-1">
-                <i class="fa-solid fa-cross mr-1"></i> 천산교회 성경통독 4기 캠페인
+                <i class="fa-solid fa-cross mr-1"></i> 천산교회 성경통독 <span id="cohort-display-1">4</span>기 캠페인
             </span>
             <h1 class="text-2xl md:text-3xl font-extrabold holy-font tracking-wide flex items-center justify-center md:justify-start">
                 천산 성경통독반 <span class="text-sm font-normal text-stone-300 ml-2">25주간의 은혜 여정</span>
@@ -349,7 +349,7 @@
         <div id="admin-console-panel" class="bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md space-y-6 hidden">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b pb-4">
                 <div>
-                    <h2 class="text-2xl font-bold text-[#3D4F41] holy-font">4기 통독반 종합 행정콘솔</h2>
+                    <h2 class="text-2xl font-bold text-[#3D4F41] holy-font"><span id="cohort-display-2">4</span>기 통독반 종합 행정콘솔</h2>
                     <p class="text-xs text-stone-500 mt-1">성경 범위 날짜 및 수파베이스, 구글 시트, 명단 일괄 편집 기능을 제어합니다.</p>
                 </div>
                 <button onclick="adminLogout()" class="px-3 py-1.5 border border-stone-200 hover:bg-stone-50 text-stone-600 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"><i class="fa-solid fa-lock-open"></i><span>관리자 로그아웃</span></button>
@@ -378,13 +378,19 @@
                 </div>
             </div>
 
-            <!-- 캠페인 개시 시작일 설정 -->
+            <!-- 캠페인 기수 및 시작일 설정 -->
             <div class="bg-amber-50/50 border border-amber-200 p-5 rounded-2xl space-y-3">
-                <h3 class="text-sm font-bold text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-calendar-days text-[#D4AF37]"></i> 제4기 성경통독 시작일 설정 (날짜 조정)</h3>
-                <p class="text-xs text-amber-700 leading-relaxed">시작일을 변경하면 150일(25주)의 전체 성경 읽기표 스케줄의 실제 날짜가 주일(일요일)을 제외하고 월~토요일 기준으로 자동 재정렬됩니다.</p>
-                <div class="flex items-center space-x-3">
-                    <input type="date" id="admin-campaign-start-date" onchange="saveCampaignStartDate(this.value)" class="p-2.5 text-xs rounded-lg border border-amber-300 focus:outline-none font-bold">
-                    <span class="text-xs font-semibold text-stone-500">지정된 4기 시작일</span>
+                <h3 class="text-sm font-bold text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-calendar-days text-[#D4AF37]"></i> 제<span id="cohort-display-3">4</span>기 성경통독 환경 설정</h3>
+                <p class="text-xs text-amber-700 leading-relaxed">기수(N기) 숫자와 시작일을 변경하면 150일(25주)의 전체 성경 읽기표 스케줄의 일자와 타이틀이 자동 재정렬됩니다.</p>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="admin-campaign-cohort" onchange="saveCampaignCohort(this.value)" class="p-2.5 text-xs rounded-lg border border-amber-300 focus:outline-none font-bold w-16 text-center" min="1">
+                        <span class="text-xs font-semibold text-stone-500">기 (기수)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="date" id="admin-campaign-start-date" onchange="saveCampaignStartDate(this.value)" class="p-2.5 text-xs rounded-lg border border-amber-300 focus:outline-none font-bold">
+                        <span class="text-xs font-semibold text-stone-500">지정된 <span id="cohort-display-4">4</span>기 시작일</span>
+                    </div>
                 </div>
             </div>
             
