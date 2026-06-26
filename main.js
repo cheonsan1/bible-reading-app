@@ -678,6 +678,7 @@
     }
 
     function applyStateToDOM() {
+        state.members.sort((a, b) => a.name.localeCompare(b.name, 'ko-KR'));
         const schedule = getBibleSchedule();
         const activeDayInfo = schedule[state.selectedDay - 1] || schedule[0];
         const dailyAnal = getDailyAnalytics();
