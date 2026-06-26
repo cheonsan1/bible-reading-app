@@ -60,10 +60,7 @@
             <button onclick="changeTab('juju_records')" id="tab-juju_records" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
                 <i class="fa-solid fa-trophy"></i><span>명예의 전당</span>
             </button>
-            <button onclick="changeTab('google_forms_sheets')" id="tab-google_forms_sheets" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
-                <i class="fa-solid fa-table-list"></i><span>구글 시트 연동</span>
-            </button>
-            <button onclick="changeTab('grace')" id="tab-grace" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
+                        <button onclick="changeTab('grace')" id="tab-grace" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
                 <i class="fa-solid fa-heart"></i><span>은혜 나눔터 & 필사</span>
             </button>
             <button onclick="changeTab('admin')" id="tab-admin" class="px-4 py-3 text-sm font-semibold whitespace-nowrap flex items-center space-x-1.5 transition-colors border-b-4 border-transparent text-stone-300 hover:text-white hover:bg-white/5">
@@ -158,7 +155,7 @@
 
                     <div class="relative w-36 h-36 flex items-center justify-center">
                         <!-- 완독 도장 레이어 -->
-                        <div id="stamp-mark" class="absolute inset-0 flex items-center justify-center bg-transparent stamp-active z-10 select-none hidden">
+                        <div id="stamp-mark" class="absolute inset-0 flex items-center justify-center bg-transparent stamp-active z-10 select-none pointer-events-none hidden">
                             <div class="w-32 h-32 border-4 border-emerald-600/70 rounded-full flex flex-col items-center justify-center text-emerald-600 font-black text-lg bg-white/90 shadow-lg transform rotate-12">
                                 <div class="text-sm tracking-widest uppercase">천산교회</div>
                                 <div class="text-2xl font-extrabold tracking-wide my-px">완 독</div>
@@ -271,191 +268,7 @@
     </section>
 
     <!-- 5. 구글 시트 & 설문지 대시보드 탭 -->
-    <section id="page-google_forms_sheets" class="tab-page bg-white p-6 rounded-2xl border border-[#E9E4DC] shadow-md space-y-6 hidden animate-fade-in">
-        <div class="border-b pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <h2 class="text-2xl font-bold text-[#3D4F41] holy-font flex items-center gap-2"><i class="fa-solid fa-table text-emerald-600"></i> 구글 시트 & 설문 연동 대시보드</h2>
-                <p class="text-xs text-stone-500 mt-1">구글 폼 취합 통계처럼 일자별 데이터를 취합하고, 구글 시트처럼 마스터 그리드를 수동 제어합니다.</p>
-            </div>
-            <div class="flex bg-stone-100 p-1 rounded-lg text-xs font-semibold">
-                <button onclick="changeSheetSubTab('forms')" id="subtab-forms" class="px-3 py-1.5 rounded-md transition-all bg-white shadow text-slate-800"><i class="fa-solid fa-list-check mr-1 text-purple-600"></i> 설문 취합 (Forms)</button>
-                <button onclick="changeSheetSubTab('sheets')" id="subtab-sheets" class="px-3 py-1.5 rounded-md transition-all text-slate-500"><i class="fa-solid fa-table-cells mr-1 text-emerald-600"></i> 마스터 격자판 (Sheets)</button>
-                <button onclick="changeSheetSubTab('integration')" id="subtab-integration" class="px-3 py-1.5 rounded-md transition-all text-slate-500"><i class="fa-solid fa-link mr-1 text-blue-600"></i> 자동 연동 가이드</button>
-            </div>
-        </div>
-
-        <!-- 5-1: 설문 취합 (Forms) -->
-        <div id="sheet-subpage-forms" class="sub-tab-page space-y-6">
-            <div class="bg-purple-50/50 border border-purple-200/50 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-purple-600 rounded-lg text-white flex items-center justify-center text-lg"><i class="fa-solid fa-file-waveform"></i></div>
-                    <div>
-                        <h3 class="text-sm font-bold text-purple-900">구글 설문지형 일자별 통계 취합</h3>
-                        <p class="text-[11px] text-purple-700">단톡방의 "완독" 메시지 정리를 한눈에 요약하고 복사할 수 있습니다.</p>
-                    </div>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <span class="text-xs text-stone-500 font-semibold">조회 대상 일차:</span>
-                    <select id="forms-day-select" onchange="handleFormsDayChange(this.value)" class="p-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none font-bold">
-                        <!-- 동적 날짜 배정 -->
-                    </select>
-                </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm text-center flex flex-col items-center justify-center">
-                    <h4 class="text-xs font-bold text-stone-500 mb-4">선택 일차 완독률 통계</h4>
-                    <div class="relative w-36 h-36 flex items-center justify-center mb-2">
-                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                            <path class="text-stone-100" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                            <path id="forms-radial-progress" class="text-purple-600" stroke-width="4" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        </svg>
-                        <div class="absolute flex flex-col items-center justify-center">
-                            <span id="forms-radial-percent" class="text-2xl font-black text-purple-900">0%</span>
-                            <span class="text-[9px] text-stone-400">완독율</span>
-                        </div>
-                    </div>
-                    <p class="text-xs text-stone-600 font-semibold mt-2">완독: <span id="forms-stat-done" class="text-purple-600 font-bold">0명</span> | 미완독: <span id="forms-stat-undone" class="text-rose-500 font-bold">0명</span></p>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm md:col-span-2 flex flex-col justify-between">
-                    <div>
-                        <div class="flex items-center justify-between border-b pb-2 mb-3">
-                            <h4 class="text-xs font-bold text-rose-700 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> 미완독 성도 권면하기</h4>
-                            <button onclick="copyKakaoInciteText()" class="px-2.5 py-1.5 bg-[#FEE500] hover:bg-[#F0D100] text-[#191919] font-black text-[10px] rounded-lg shadow-sm transition-transform hover:-translate-y-0.5 flex items-center gap-1"><i class="fa-solid fa-comment text-xs"></i> 카톡 독려글 복사</button>
-                        </div>
-                        <div id="forms-undone-list" class="max-h-36 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                            <!-- 미완독자 바인딩 -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
-                <h4 class="text-xs font-bold text-[#3D4F41] mb-3 pb-2 border-b flex items-center gap-1.5"><i class="fa-solid fa-square-check text-emerald-600"></i> 선택 일차 말씀 통독 완료 성도 명단</h4>
-                <div id="forms-done-list" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
-                    <!-- 완독자 바인딩 -->
-                </div>
-            </div>
-        </div>
-
-        <!-- 5-2: 마스터 격자판 (Sheets) -->
-        <div id="sheet-subpage-sheets" class="sub-tab-page space-y-4 hidden">
-            <div class="bg-emerald-50/50 border border-emerald-200/50 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 text-xs">
-                <div>
-                    <h3 class="font-bold text-emerald-900">구글 스프레드시트 150일 마스터 그리드</h3>
-                    <p class="text-[11px] text-emerald-700 mt-0.5">성도 명단의 실시간 통독 진행표입니다. 빈 셀을 클릭하면 수동 완독 마킹 전환이 이루어집니다.</p>
-                </div>
-                <div class="flex items-center space-x-2">
-                    <button onclick="handleDownloadCsv()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-transform hover:-translate-y-px"><i class="fa-solid fa-file-excel mr-1"></i> 시트 백업용 CSV 다운로드</button>
-                </div>
-            </div>
-            <div class="flex gap-2">
-                <input type="text" id="grid-search" oninput="renderMasterGrid()" placeholder="성명 검색..." class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
-                <select id="grid-group-filter" onchange="renderMasterGrid()" class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
-                    <option value="all">전체 조 보기</option>
-                    <option value="사랑 1조">사랑 1조</option>
-                    <option value="소망 2조">소망 2조</option>
-                    <option value="믿음 3조">믿음 3조</option>
-                    <option value="온유 4조">온유 4조</option>
-                    <option value="자비 5조">자비 5조</option>
-                </select>
-                <span class="text-[10px] text-stone-400 self-center">💡 셀을 터치하면 성도 상태가 토글(녹색=완독, 백색=미완독)됩니다.</span>
-            </div>
-            <div class="overflow-auto max-h-[500px] border border-stone-200 rounded-lg custom-scrollbar">
-                <table class="w-full text-left border-collapse text-xs table-fixed">
-                    <thead class="bg-stone-50 sticky top-0 z-20 shadow-sm">
-                        <tr id="grid-header-tr">
-                            <!-- 헤더 동적 생성 -->
-                        </tr>
-                    </thead>
-                    <tbody id="grid-body-container" class="divide-y divide-stone-100">
-                        <!-- 마스터 그리드 바인딩 -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 5-3: 연동 가이드 (Integration) -->
-        <div id="sheet-subpage-integration" class="sub-tab-page space-y-6 hidden">
-            <div class="bg-blue-50 border border-blue-200/50 p-5 rounded-xl">
-                <h3 class="text-sm font-bold text-blue-900 mb-2">⚡ 실시간 구글 스프레드시트 양방향 연동</h3>
-                <p class="text-xs text-blue-800 leading-relaxed">성도님들이 스탬프를 찍으면 구글 시트에 "완독"이 자동 기록되며, 필사 사진을 올리면 묵상 텍스트와 보존용 파일 링크가 실시간 구글 시트 기록창에 자동 기입됩니다. 관리자 도구에서 간편히 구글 스크립트 배포 주소를 지정하세요.</p>
-            </div>
-
-            <div class="bg-white p-5 border border-stone-200 rounded-2xl shadow-sm space-y-4">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-2">
-                    <h4 class="text-sm font-bold text-stone-800 flex items-center gap-1.5"><i class="fa-solid fa-code text-blue-600"></i> 구글 Apps Script(code.gs) 연동 코드</h4>
-                    <div class="flex space-x-2">
-                        <button onclick="copyAppsScriptToClipboard()" class="px-3 py-1.5 bg-stone-800 hover:bg-stone-900 text-white rounded text-xs font-bold flex items-center gap-1"><i class="fa-regular fa-copy"></i> 코드 복사하기</button>
-                        <button onclick="downloadAppsScriptFile()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold flex items-center gap-1"><i class="fa-solid fa-file-arrow-down"></i> 📄 code.gs 다운로드</button>
-                    </div>
-                </div>
-                <p class="text-xs text-stone-500">이 코드를 구글 스프레드시트의 [확장 프로그램] -> [Apps Script] 창에 붙여넣어 배포하시면 실시간 자동 연동이 활성화됩니다.</p>
-                <div class="relative bg-stone-900 text-stone-100 p-4 rounded-xl text-xs overflow-x-auto">
-                    <pre id="apps-script-preview-code" class="font-mono text-left select-all">
-/**
- * 천산중앙교회 성경통독 25주 통합 관리 양방향 시트 연동 스크립트
- */
-
-function doPost(e) {
-  var params = JSON.parse(e.postData.contents);
-  var action = params.action;
-  
-  if (action === 'progress') {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
-    var memberName = params.memberName;
-    var completedDays = params.completedDays;
     
-    var data = sheet.getDataRange().getValues();
-    var targetRow = -1;
-    for (var i = 1; i < data.length; i++) {
-      if (data[i][1] == memberName) { 
-        targetRow = i + 1;
-        break;
-      }
-    }
-    
-    if (targetRow == -1) {
-      sheet.appendRow(["W1", memberName, params.group, completedDays.length]);
-      targetRow = sheet.getLastRow();
-    }
-    
-    sheet.getRange(targetRow, 4).setValue(completedDays.length);
-    
-    for (var d = 1; d <= 150; d++) {
-      var colIndex = d + 4; 
-      if (completedDays.indexOf(d) > -1) {
-        sheet.getRange(targetRow, colIndex).setValue("완독");
-      } else {
-        sheet.getRange(targetRow, colIndex).setValue("");
-      }
-    }
-  } 
-  else if (action === 'transcription') {
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    var secondSheetName = "필사 및 묵상 나눔";
-    var memoSheet = ss.getSheetByName(secondSheetName);
-    
-    if (!memoSheet) {
-      memoSheet = ss.insertSheet(secondSheetName);
-      memoSheet.appendRow(["기입 시각", "성도명", "소속 조", "성경 범위", "묵상 내용", "필사노트 사진 주소"]);
-    }
-    
-    var timeStamp = new Date();
-    var memberName = params.memberName;
-    var group = params.group;
-    var verse = params.verse;
-    var content = params.content;
-    var imageUrl = params.imageUrl; 
-    
-    memoSheet.appendRow([timeStamp, memberName, group, verse, content, imageUrl]);
-  }
-  
-  return ContentService.createTextOutput(JSON.stringify({result: "success"}))
-    .setMimeType(ContentService.MimeType.JSON);
-}</pre>
-                </div>
-            </div>
-        </div>
-    </section>
 
     <!-- 6. 은혜 나눔터 & 필사 탭 -->
     <section id="page-grace" class="tab-page space-y-6 hidden animate-fade-in">
@@ -642,7 +455,196 @@ function doPost(e) {
                     </table>
                 </div>
             </div>
+        
+            <!-- 이관된 구글 시트 & 설문지 연동 패널 -->
+            <div id="admin-google-sheets" class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-6 mt-8">
+
+        <div class="border-b pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h2 class="text-2xl font-bold text-[#3D4F41] holy-font flex items-center gap-2"><i class="fa-solid fa-table text-emerald-600"></i> 구글 시트 & 설문 연동 대시보드</h2>
+                <p class="text-xs text-stone-500 mt-1">구글 폼 취합 통계처럼 일자별 데이터를 취합하고, 구글 시트처럼 마스터 그리드를 수동 제어합니다.</p>
+            </div>
+            <div class="flex bg-stone-100 p-1 rounded-lg text-xs font-semibold">
+                <button onclick="changeSheetSubTab('forms')" id="subtab-forms" class="px-3 py-1.5 rounded-md transition-all bg-white shadow text-slate-800"><i class="fa-solid fa-list-check mr-1 text-purple-600"></i> 설문 취합 (Forms)</button>
+                <button onclick="changeSheetSubTab('sheets')" id="subtab-sheets" class="px-3 py-1.5 rounded-md transition-all text-slate-500"><i class="fa-solid fa-table-cells mr-1 text-emerald-600"></i> 마스터 격자판 (Sheets)</button>
+                <button onclick="changeSheetSubTab('integration')" id="subtab-integration" class="px-3 py-1.5 rounded-md transition-all text-slate-500"><i class="fa-solid fa-link mr-1 text-blue-600"></i> 자동 연동 가이드</button>
+            </div>
         </div>
+
+        <!-- 5-1: 설문 취합 (Forms) -->
+        <div id="sheet-subpage-forms" class="sub-tab-page space-y-6">
+            <div class="bg-purple-50/50 border border-purple-200/50 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-purple-600 rounded-lg text-white flex items-center justify-center text-lg"><i class="fa-solid fa-file-waveform"></i></div>
+                    <div>
+                        <h3 class="text-sm font-bold text-purple-900">구글 설문지형 일자별 통계 취합</h3>
+                        <p class="text-[11px] text-purple-700">단톡방의 "완독" 메시지 정리를 한눈에 요약하고 복사할 수 있습니다.</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="text-xs text-stone-500 font-semibold">조회 대상 일차:</span>
+                    <select id="forms-day-select" onchange="handleFormsDayChange(this.value)" class="p-1.5 text-xs bg-white border border-stone-200 rounded-lg focus:outline-none font-bold">
+                        <!-- 동적 날짜 배정 -->
+                    </select>
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm text-center flex flex-col items-center justify-center">
+                    <h4 class="text-xs font-bold text-stone-500 mb-4">선택 일차 완독률 통계</h4>
+                    <div class="relative w-36 h-36 flex items-center justify-center mb-2">
+                        <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                            <path class="text-stone-100" stroke-width="4" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            <path id="forms-radial-progress" class="text-purple-600" stroke-width="4" stroke-dasharray="0, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        </svg>
+                        <div class="absolute flex flex-col items-center justify-center">
+                            <span id="forms-radial-percent" class="text-2xl font-black text-purple-900">0%</span>
+                            <span class="text-[9px] text-stone-400">완독율</span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-stone-600 font-semibold mt-2">완독: <span id="forms-stat-done" class="text-purple-600 font-bold">0명</span> | 미완독: <span id="forms-stat-undone" class="text-rose-500 font-bold">0명</span></p>
+                </div>
+                <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm md:col-span-2 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between border-b pb-2 mb-3">
+                            <h4 class="text-xs font-bold text-rose-700 flex items-center gap-1"><i class="fa-solid fa-circle-exclamation"></i> 미완독 성도 권면하기</h4>
+                            <button onclick="copyKakaoInciteText()" class="px-2.5 py-1.5 bg-[#FEE500] hover:bg-[#F0D100] text-[#191919] font-black text-[10px] rounded-lg shadow-sm transition-transform hover:-translate-y-0.5 flex items-center gap-1"><i class="fa-solid fa-comment text-xs"></i> 카톡 독려글 복사</button>
+                        </div>
+                        <div id="forms-undone-list" class="max-h-36 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+                            <!-- 미완독자 바인딩 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white p-5 rounded-xl border border-stone-200 shadow-sm">
+                <h4 class="text-xs font-bold text-[#3D4F41] mb-3 pb-2 border-b flex items-center gap-1.5"><i class="fa-solid fa-square-check text-emerald-600"></i> 선택 일차 말씀 통독 완료 성도 명단</h4>
+                <div id="forms-done-list" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2">
+                    <!-- 완독자 바인딩 -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 5-2: 마스터 격자판 (Sheets) -->
+        <div id="sheet-subpage-sheets" class="sub-tab-page space-y-4 hidden">
+            <div class="bg-emerald-50/50 border border-emerald-200/50 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 text-xs">
+                <div>
+                    <h3 class="font-bold text-emerald-900">구글 스프레드시트 150일 마스터 그리드</h3>
+                    <p class="text-[11px] text-emerald-700 mt-0.5">성도 명단의 실시간 통독 진행표입니다. 빈 셀을 클릭하면 수동 완독 마킹 전환이 이루어집니다.</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button onclick="handleDownloadCsv()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-transform hover:-translate-y-px"><i class="fa-solid fa-file-excel mr-1"></i> 시트 백업용 CSV 다운로드</button>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="grid-search" oninput="renderMasterGrid()" placeholder="성명 검색..." class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
+                <select id="grid-group-filter" onchange="renderMasterGrid()" class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
+                    <option value="all">전체 조 보기</option>
+                    <option value="사랑 1조">사랑 1조</option>
+                    <option value="소망 2조">소망 2조</option>
+                    <option value="믿음 3조">믿음 3조</option>
+                    <option value="온유 4조">온유 4조</option>
+                    <option value="자비 5조">자비 5조</option>
+                </select>
+                <span class="text-[10px] text-stone-400 self-center">💡 셀을 터치하면 성도 상태가 토글(녹색=완독, 백색=미완독)됩니다.</span>
+            </div>
+            <div class="overflow-auto max-h-[500px] border border-stone-200 rounded-lg custom-scrollbar">
+                <table class="w-full text-left border-collapse text-xs table-fixed">
+                    <thead class="bg-stone-50 sticky top-0 z-20 shadow-sm">
+                        <tr id="grid-header-tr">
+                            <!-- 헤더 동적 생성 -->
+                        </tr>
+                    </thead>
+                    <tbody id="grid-body-container" class="divide-y divide-stone-100">
+                        <!-- 마스터 그리드 바인딩 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 5-3: 연동 가이드 (Integration) -->
+        <div id="sheet-subpage-integration" class="sub-tab-page space-y-6 hidden">
+            <div class="bg-blue-50 border border-blue-200/50 p-5 rounded-xl">
+                <h3 class="text-sm font-bold text-blue-900 mb-2">⚡ 실시간 구글 스프레드시트 양방향 연동</h3>
+                <p class="text-xs text-blue-800 leading-relaxed">성도님들이 스탬프를 찍으면 구글 시트에 "완독"이 자동 기록되며, 필사 사진을 올리면 묵상 텍스트와 보존용 파일 링크가 실시간 구글 시트 기록창에 자동 기입됩니다. 관리자 도구에서 간편히 구글 스크립트 배포 주소를 지정하세요.</p>
+            </div>
+
+            <div class="bg-white p-5 border border-stone-200 rounded-2xl shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-3 gap-2">
+                    <h4 class="text-sm font-bold text-stone-800 flex items-center gap-1.5"><i class="fa-solid fa-code text-blue-600"></i> 구글 Apps Script(code.gs) 연동 코드</h4>
+                    <div class="flex space-x-2">
+                        <button onclick="copyAppsScriptToClipboard()" class="px-3 py-1.5 bg-stone-800 hover:bg-stone-900 text-white rounded text-xs font-bold flex items-center gap-1"><i class="fa-regular fa-copy"></i> 코드 복사하기</button>
+                        <button onclick="downloadAppsScriptFile()" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold flex items-center gap-1"><i class="fa-solid fa-file-arrow-down"></i> 📄 code.gs 다운로드</button>
+                    </div>
+                </div>
+                <p class="text-xs text-stone-500">이 코드를 구글 스프레드시트의 [확장 프로그램] -> [Apps Script] 창에 붙여넣어 배포하시면 실시간 자동 연동이 활성화됩니다.</p>
+                <div class="relative bg-stone-900 text-stone-100 p-4 rounded-xl text-xs overflow-x-auto">
+                    <pre id="apps-script-preview-code" class="font-mono text-left select-all">
+/**
+ * 천산중앙교회 성경통독 25주 통합 관리 양방향 시트 연동 스크립트
+ */
+
+function doPost(e) {
+  var params = JSON.parse(e.postData.contents);
+  var action = params.action;
+  
+  if (action === 'progress') {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheets()[0];
+    var memberName = params.memberName;
+    var completedDays = params.completedDays;
+    
+    var data = sheet.getDataRange().getValues();
+    var targetRow = -1;
+    for (var i = 1; i < data.length; i++) {
+      if (data[i][1] == memberName) { 
+        targetRow = i + 1;
+        break;
+      }
+    }
+    
+    if (targetRow == -1) {
+      sheet.appendRow(["W1", memberName, params.group, completedDays.length]);
+      targetRow = sheet.getLastRow();
+    }
+    
+    sheet.getRange(targetRow, 4).setValue(completedDays.length);
+    
+    for (var d = 1; d <= 150; d++) {
+      var colIndex = d + 4; 
+      if (completedDays.indexOf(d) > -1) {
+        sheet.getRange(targetRow, colIndex).setValue("완독");
+      } else {
+        sheet.getRange(targetRow, colIndex).setValue("");
+      }
+    }
+  } 
+  else if (action === 'transcription') {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var secondSheetName = "필사 및 묵상 나눔";
+    var memoSheet = ss.getSheetByName(secondSheetName);
+    
+    if (!memoSheet) {
+      memoSheet = ss.insertSheet(secondSheetName);
+      memoSheet.appendRow(["기입 시각", "성도명", "소속 조", "성경 범위", "묵상 내용", "필사노트 사진 주소"]);
+    }
+    
+    var timeStamp = new Date();
+    var memberName = params.memberName;
+    var group = params.group;
+    var verse = params.verse;
+    var content = params.content;
+    var imageUrl = params.imageUrl; 
+    
+    memoSheet.appendRow([timeStamp, memberName, group, verse, content, imageUrl]);
+  }
+  
+  return ContentService.createTextOutput(JSON.stringify({result: "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}</pre>
+                </div>
+            </div>
+        </div>
+    
+            </div>
+</div>
     </section>
 </main>
 

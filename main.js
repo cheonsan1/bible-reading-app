@@ -818,7 +818,7 @@
 
         // 7. 설문 취합 (Forms) 탭 갱신
         const formsDaySelect = document.getElementById('forms-day-select');
-        if (state.currentTab === 'google_forms_sheets' && state.sheetSubTab === 'forms' && formsDaySelect) {
+        if (state.currentTab === 'admin' && state.sheetSubTab === 'forms' && formsDaySelect) {
             if (!state.formsSelectedDay) state.formsSelectedDay = state.selectedDay;
             if (formsDaySelect.options.length === 0) {
                 schedule.slice(0, 150).forEach(day => {
@@ -910,7 +910,7 @@
     function renderMasterGrid() {
         const headerTr = document.getElementById('grid-header-tr');
         const bodyContainer = document.getElementById('grid-body-container');
-        if (!headerTr || !bodyContainer || state.currentTab !== 'google_forms_sheets') return;
+        if (!headerTr || !bodyContainer || state.currentTab !== 'admin') return;
 
         const schedule = getBibleSchedule();
         let headerHTML = `
