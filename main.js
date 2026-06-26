@@ -358,14 +358,15 @@
         if (!state.currentUser) { showToast("이름을 로그인 한 뒤 눌러주세요.", "warning"); return; }
         const memberId = state.currentUser.id;
         const currentProgress = state.progress[memberId] || { completedDays: [], notes: {} };
-        let updatedCompletedDays = [...currentProgress.completedDays];
-        const index = updatedCompletedDays.indexOf(state.selectedDay);
+        let updatedCompletedDays = [...currentProgress.completedDays].map(Number);
+        const targetDay = Number(state.selectedDay);
+        const index = updatedCompletedDays.indexOf(targetDay);
         
         let isNowCompleted = false;
         if (index > -1) {
             updatedCompletedDays.splice(index, 1);
         } else {
-            updatedCompletedDays.push(state.selectedDay);
+            updatedCompletedDays.push(targetDay);
             isNowCompleted = true;
             confetti({ particleCount: 80, spread: 60, origin: { y: 0.8 } });
         }
@@ -664,8 +665,8 @@
         const completed = [];
         const uncompleted = [];
         pool.forEach(m => {
-            const completedDays = state.progress[m.id]?.completedDays || [];
-            if (completedDays.includes(state.selectedDay)) completed.push(m);
+            const completedDays = (state.progress[m.id]?.completedDays || []).map(Number);
+            if (completedDays.includes(Number(state.selectedDay))) completed.push(m);
             else uncompleted.push(m);
         });
         return { completed, uncompleted, rate: pool.length > 0 ? Math.round((completed.length / pool.length) * 100) : 0 };
@@ -705,7 +706,7 @@
             document.getElementById('stamp-target-user').className = "text-xs text-stone-400 mt-1";
             document.getElementById('stamp-target-user').innerHTML = `인증 대상자: <span class="font-bold text-[#3D4F41]">${state.currentUser.name}</span>`;
             
-            const isCompletedToday = state.progress[state.currentUser.id]?.completedDays?.includes(state.selectedDay);
+            const isCompletedToday = (state.progress[state.currentUser.id]?.completedDays || []).map(Number).includes(Number(state.selectedDay));
             if (isCompletedToday) {
                 document.getElementById('stamp-mark').classList.remove('hidden');
                 document.getElementById('stamp-trigger-btn').className = "w-28 h-28 rounded-full flex flex-col items-center justify-center text-white font-extrabold text-sm bg-rose-600 shadow-inner";
@@ -729,7 +730,7 @@
                 
                 let dayCardsHTML = '';
                 weekDays.forEach(day => {
-                    const isCompleted = state.currentUser && state.progress[state.currentUser.id]?.completedDays?.includes(day.day);
+                    const isCompleted = state.currentUser && (state.progress[state.currentUser.id]?.completedDays || []).map(Number).includes(Number(day.day));
                     const isSelected = state.selectedDay === day.day;
                     dayCardsHTML += `
                         <div onclick="setSelectedDayFromCalendar(${day.day})" class="p-3 rounded-lg border text-center cursor-pointer ${isSelected ? 'border-2 border-[#3D4F41] bg-[#3D4F41]/5' : isCompleted ? 'border-emerald-200 bg-emerald-50/50' : 'border-stone-100 bg-white hover:border-stone-300'}">
@@ -748,9 +749,9 @@
         if (state.currentTab === 'dashboard' && dashboardGrid) {
             dashboardGrid.innerHTML = '';
             getFilteredMembers().forEach(member => {
-                const completed = state.progress[member.id]?.completedDays || [];
+                const completed = (state.progress[member.id]?.completedDays || []).map(Number);
                 const rate = Math.round((completed.length / 150) * 100);
-                const readToday = completed.includes(state.selectedDay);
+                const readToday = completed.includes(Number(state.selectedDay));
                 const rounds = state.juju[member.name] || 0;
 
                 const card = document.createElement('div');
@@ -1037,10 +1038,11 @@
             return;
         }
         const currentProgress = state.progress[memberId] || { completedDays: [], notes: {} };
-        let updatedDays = [...currentProgress.completedDays];
-        const idx = updatedDays.indexOf(day);
+        let updatedDays = [...currentProgress.completedDays].map(Number);
+        const targetDay = Number(day);
+        const idx = updatedDays.indexOf(targetDay);
         if(idx > -1) updatedDays.splice(idx, 1);
-        else updatedDays.push(day);
+        else updatedDays.push(targetDay);
         
         updatedDays.sort((a,b)=>a-b);
         state.progress[memberId] = { ...currentProgress, completedDays: updatedDays };
