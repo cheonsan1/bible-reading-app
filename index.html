@@ -355,53 +355,6 @@
                 <button onclick="adminLogout()" class="px-3 py-1.5 border border-stone-200 hover:bg-stone-50 text-stone-600 rounded-lg text-xs font-bold transition-colors flex items-center gap-1"><i class="fa-solid fa-lock-open"></i><span>관리자 로그아웃</span></button>
             </div>
 
-            <!-- Supabase & Google Sheets Webhook 연동 -->
-            <div class="bg-emerald-50/50 border border-emerald-300/80 p-5 rounded-2xl space-y-4">
-                <h3 class="text-sm font-bold text-emerald-900 flex items-center gap-1.5"><i class="fa-solid fa-cloud"></i> 🌐 실시간 Supabase 클라우드 & 구글 시트 API 연동 관리</h3>
-                <p class="text-xs text-emerald-800">서버 정보 및 구글 가입 스크립트 배포 주소를 지정하여 실시간 연동을 구성할 수 있습니다.</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[11px] font-bold text-stone-600 mb-1">Supabase Project URL</label>
-                        <input id="set-sb-url" type="text" placeholder="https://yourproject.supabase.co" class="w-full p-2 border border-stone-300 rounded text-xs focus:ring-1 focus:ring-emerald-500">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-stone-600 mb-1">Supabase Anon Key</label>
-                        <input id="set-sb-key" type="password" placeholder="your-anon-api-key" class="w-full p-2 border border-stone-300 rounded text-xs focus:ring-1 focus:ring-emerald-500">
-                    </div>
-                    <div class="md:col-span-2">
-                        <label class="block text-[11px] font-bold text-stone-600 mb-1">Google Apps Script Web App URL (구글 시트 연동 주소)</label>
-                        <input id="set-g-url" type="text" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-2 border border-stone-300 rounded text-xs focus:ring-1 focus:ring-emerald-500">
-                    </div>
-                </div>
-                <div class="flex justify-end pt-1">
-                    <button onclick="saveCloudSettings()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold shadow transition-transform hover:-translate-y-px">연동 정보 저장하기</button>
-                </div>
-            </div>
-
-            <!-- 캠페인 기수 및 시작일 설정 -->
-            <div class="bg-amber-50/50 border border-amber-200 p-5 rounded-2xl space-y-3">
-                <h3 class="text-sm font-bold text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-calendar-days text-[#D4AF37]"></i> 제<span id="cohort-display-3">4</span>기 성경통독 환경 설정</h3>
-                <p class="text-xs text-amber-700 leading-relaxed">기수(N기) 숫자와 시작일을 변경하면 150일(25주)의 전체 성경 읽기표 스케줄의 일자와 타이틀이 자동 재정렬됩니다.</p>
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2">
-                        <input type="number" id="admin-campaign-cohort" onchange="saveCampaignCohort(this.value)" class="p-2.5 text-xs rounded-lg border border-amber-300 focus:outline-none font-bold w-16 text-center" min="1">
-                        <span class="text-xs font-semibold text-stone-500">기 (기수)</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <input type="date" id="admin-campaign-start-date" onchange="saveCampaignStartDate(this.value)" class="p-2.5 text-xs rounded-lg border border-amber-300 focus:outline-none font-bold">
-                        <span class="text-xs font-semibold text-stone-500">지정된 <span id="cohort-display-4">4</span>기 시작일</span>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- 📱 시스템 소스코드(HTML) 다운로드/공유 영역 (관리자만 볼 수 있게 이동됨) -->
-            <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl space-y-3">
-                <h3 class="text-sm font-bold text-blue-900 flex items-center gap-1.5"><i class="fa-solid fa-file-code"></i> 시스템 통합 소스코드(index.html) 백업 및 공유</h3>
-                <p class="text-xs text-blue-700 leading-relaxed">서버에 배포할 이 시스템의 통합 HTML 소스코드 파일을 관리자의 기기에 즉시 저장하거나 공유합니다.</p>
-                <button onclick="downloadSelfHTML()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded shadow-sm text-xs font-bold transition-transform hover:-translate-y-px flex items-center justify-center gap-1.5 w-full sm:w-auto">
-                    <i class="fa-solid fa-download"></i> index.html 소스코드 다운로드
-                </button>
-            </div>
 
             <!-- 명단 및 대량 등록, 백업 허브 -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-b pb-6">
@@ -458,6 +411,54 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Supabase & Google Sheets Webhook 연동 -->
+            <div class="bg-emerald-50/50 border border-emerald-300/80 p-5 rounded-2xl space-y-4">
+                <h3 class="text-sm font-bold text-emerald-900 flex items-center gap-1.5"><i class="fa-solid fa-cloud"></i> 🌐 실시간 Supabase 클라우드 & 구글 시트 API 연동 관리</h3>
+                <p class="text-xs text-emerald-800">서버 정보 및 구글 가입 스크립트 배포 주소를 지정하여 실시간 연동을 구성할 수 있습니다.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-stone-600 mb-1">Supabase Project URL</label>
+                        <input id="set-sb-url" type="text" placeholder="https://yourproject.supabase.co" class="w-full p-2 border border-stone-300 rounded text-xs focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-stone-600 mb-1">Supabase Anon Key</label>
+                        <input id="set-sb-key" type="password" placeholder="your-anon-api-key" class="w-full p-2 border border-stone-300 rounded text-xs focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-[11px] font-bold text-stone-600 mb-1">Google Apps Script Web App URL (구글 시트 연동 주소)</label>
+                        <input id="set-g-url" type="text" placeholder="https://script.google.com/macros/s/.../exec" class="w-full p-2 border border-stone-300 rounded text-xs focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                </div>
+                <div class="flex justify-end pt-1">
+                    <button onclick="saveCloudSettings()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-xs font-bold shadow transition-transform hover:-translate-y-px">연동 정보 저장하기</button>
+                </div>
+            </div>
+
+            <!-- 캠페인 기수 및 시작일 설정 -->
+            <div class="bg-amber-50/50 border border-amber-200 p-5 rounded-2xl space-y-3">
+                <h3 class="text-sm font-bold text-amber-900 flex items-center gap-1.5"><i class="fa-solid fa-calendar-days text-[#D4AF37]"></i> 제<span id="cohort-display-3">4</span>기 성경통독 환경 설정</h3>
+                <p class="text-xs text-amber-700 leading-relaxed">기수(N기) 숫자와 시작일을 변경하면 150일(25주)의 전체 성경 읽기표 스케줄의 일자와 타이틀이 자동 재정렬됩니다.</p>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <input type="number" id="admin-campaign-cohort" onchange="saveCampaignCohort(this.value)" class="p-2.5 text-xs rounded-lg border border-amber-300 focus:outline-none font-bold w-16 text-center" min="1">
+                        <span class="text-xs font-semibold text-stone-500">기 (기수)</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <input type="date" id="admin-campaign-start-date" onchange="saveCampaignStartDate(this.value)" class="p-2.5 text-xs rounded-lg border border-amber-300 focus:outline-none font-bold">
+                        <span class="text-xs font-semibold text-stone-500">지정된 <span id="cohort-display-4">4</span>기 시작일</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 📱 시스템 소스코드(HTML) 다운로드/공유 영역 (관리자만 볼 수 있게 이동됨) -->
+            <div class="bg-blue-50 border border-blue-200 p-5 rounded-2xl space-y-3">
+                <h3 class="text-sm font-bold text-blue-900 flex items-center gap-1.5"><i class="fa-solid fa-file-code"></i> 시스템 통합 소스코드(index.html) 백업 및 공유</h3>
+                <p class="text-xs text-blue-700 leading-relaxed">서버에 배포할 이 시스템의 통합 HTML 소스코드 파일을 관리자의 기기에 즉시 저장하거나 공유합니다.</p>
+                <button onclick="downloadSelfHTML()" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded shadow-sm text-xs font-bold transition-transform hover:-translate-y-px flex items-center justify-center gap-1.5 w-full sm:w-auto">
+                    <i class="fa-solid fa-download"></i> index.html 소스코드 다운로드
+                </button>
             </div>
         
             <!-- 이관된 구글 시트 & 설문지 연동 패널 -->
