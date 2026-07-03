@@ -105,14 +105,16 @@
 
     async function supabaseFetch(table, method = 'GET', body = null, queryParams = '') {
         if (!state.supabaseUrl || !state.supabaseAnonKey) return null;
+        const isUpsert = method === 'UPSERT';
+        const actualMethod = isUpsert ? 'POST' : method;
         const headers = {
             'apikey': state.supabaseAnonKey,
             'Authorization': `Bearer ${state.supabaseAnonKey}`,
             'Content-Type': 'application/json',
-            'Prefer': 'return=representation'
+            'Prefer': isUpsert ? 'return=representation, resolution=merge-duplicates' : 'return=representation'
         };
         const url = `${state.supabaseUrl}/rest/v1/${table}${queryParams}`;
-        const options = { method, headers };
+        const options = { method: actualMethod, headers };
         if (body) options.body = JSON.stringify(body);
         try {
             const res = await fetch(url, options);
@@ -412,7 +414,7 @@
         const nextRounds = currentRounds + 1;
         state.juju[memberName] = nextRounds;
         lsSet('chunsan_juju', state.juju);
-        if (state.isSupabaseActive) supabaseFetch('chunsan_juju', 'POST', { name: memberName, count: nextRounds, updated_at: new Date().toISOString() });
+        if (state.isSupabaseActive) supabaseFetch('chunsan_juju', 'UPSERT', { name: memberName, count: nextRounds, updated_at: new Date().toISOString() }, '?on_conflict=name');
         openModal('🎉 대완주 축하 🎉', `할렐루야! ${memberName} 성도님 ${nextRounds}독 달성!`, null);
         confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } });
     }
@@ -1148,7 +1150,7 @@
         state.juju[name] = next;
         lsSet('chunsan_juju', state.juju);
         if (state.isSupabaseActive) {
-            await supabaseFetch('chunsan_juju', 'POST', { name: name, count: next, updated_at: new Date().toISOString() });
+            await supabaseFetch('chunsan_juju', 'UPSERT', { name: name, count: next, updated_at: new Date().toISOString() }, '?on_conflict=name');
         }
         applyStateToDOM();
     }
