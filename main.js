@@ -231,6 +231,11 @@
                     const jujuList = await supabaseFetch('chunsan_juju');
                     state.juju = {};
                     if (jujuList && jujuList.length > 0) {
+                        jujuList.sort((a, b) => {
+                            const timeA = a.updated_at ? new Date(a.updated_at).getTime() : (a.id || 0);
+                            const timeB = b.updated_at ? new Date(b.updated_at).getTime() : (b.id || 0);
+                            return timeA - timeB;
+                        });
                         jujuList.forEach(item => { state.juju[item.name] = item.count; });
                         lsSet('chunsan_juju', state.juju);
                     }
