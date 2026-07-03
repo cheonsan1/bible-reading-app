@@ -960,6 +960,9 @@
                 }
 
                 targetList = targetList.filter(n => n.includes(searchQ));
+                
+                // 가나다순 정렬
+                targetList.sort((a, b) => a.localeCompare(b, 'ko-KR'));
 
                 targetList.forEach(name => {
                     const currentCount = state.juju[name] || 0;
