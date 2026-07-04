@@ -2,8 +2,23 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>천산중앙교회 성경통독반</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>천산 성경통독반</title>
+    <meta name="description" content="천산중앙교회 성경통독반 — 25주간의 은혜 여정. 오늘의 통독 범위 확인, 성도 현황 및 진도 체크.">
+    <meta name="theme-color" content="#3D4F41">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="성경통독">
+
+    <!-- 파비콘 -->
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <link rel="alternate icon" type="image/png" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="./icons/icon-152.png">
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts -->
@@ -141,7 +156,12 @@
                         <button onclick="adjustSelectedDay(1)" class="p-2 text-stone-500 hover:bg-stone-100 rounded"><i class="fa-solid fa-chevron-right"></i></button>
                     </div>
                 </div>
-                <h2 id="today-bible-range" class="text-3xl font-extrabold text-[#3D4F41] mb-2 holy-font">창세기 1~8장</h2>
+                <div class="flex items-center gap-3 mb-2 flex-wrap">
+                    <h2 id="today-bible-range" class="text-3xl font-extrabold text-[#3D4F41] holy-font">창세기 1~8장</h2>
+                    <button onclick="openPreviewModal(state?.selectedDay || 1)" title="상세 미리보기" class="flex items-center gap-1.5 px-3 py-1.5 bg-[#3D4F41]/8 hover:bg-[#3D4F41]/15 text-[#3D4F41] text-xs font-bold rounded-full border border-[#3D4F41]/20 transition-all" style="font-family:'Noto Sans KR',sans-serif;">
+                        👁 미리보기
+                    </button>
+                </div>
                 <p class="text-stone-600 text-sm leading-relaxed mb-6">
                     “주의 말씀은 내 발에 등이요 내 길에 빛이니이다.” (시편 119:105)<br/>
                     오늘의 성경 범위를 정성스럽게 통독하신 뒤, 기도로 은혜를 구하고 아래 스탬프를 눌러 완독 사실을 증명해 보세요.

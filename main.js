@@ -766,11 +766,22 @@
                 weekDays.forEach(day => {
                     const isCompleted = state.currentUser && (state.progress[state.currentUser.id]?.completedDays || []).map(Number).includes(Number(day.day));
                     const isSelected = state.selectedDay === day.day;
+                    // 이 날 완독한 전체 인원 수
+                    const doneCnt = state.members.filter(m => {
+                        const p = state.progress[m.id];
+                        return p && (p.completedDays || []).map(Number).includes(Number(day.day));
+                    }).length;
                     dayCardsHTML += `
-                        <div onclick="setSelectedDayFromCalendar(${day.day})" class="p-3 rounded-lg border text-center cursor-pointer ${isSelected ? 'border-2 border-[#3D4F41] bg-[#3D4F41]/5' : isCompleted ? 'border-emerald-200 bg-emerald-50/50' : 'border-stone-100 bg-white hover:border-stone-300'}">
+                        <div class="p-3 rounded-lg border text-center ${isSelected ? 'border-2 border-[#3D4F41] bg-[#3D4F41]/5' : isCompleted ? 'border-emerald-200 bg-emerald-50/50' : 'border-stone-100 bg-white hover:border-stone-300'}" style="cursor:default; position:relative;">
                             <div class="flex justify-between text-[10px] text-stone-400 mb-1"><span>Day ${day.day}</span><span class="font-bold text-stone-600">${day.date}</span></div>
-                            <div class="text-xs font-bold text-stone-800 line-clamp-2 h-8 flex items-center justify-center">${day.range}</div>
-                            <div class="mt-2 flex justify-center">${isCompleted ? '<span class="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold">완독</span>' : '<span class="text-[10px] px-1.5 py-0.5 bg-stone-100 text-stone-400 rounded-full">대기</span>'}</div>
+                            <div onclick="setSelectedDayFromCalendar(${day.day})" class="text-xs font-bold text-stone-800 line-clamp-2 h-8 flex items-center justify-center cursor-pointer hover:text-[#3D4F41]">${day.range}</div>
+                            <div class="mt-2 flex justify-between items-center">
+                                <span class="text-[10px] text-stone-400">${doneCnt > 0 ? `✅ ${doneCnt}명` : ''}</span>
+                                <div class="flex gap-1 items-center">
+                                    ${isCompleted ? '<span class="text-[10px] px-1.5 py-0.5 bg-emerald-100 text-emerald-800 rounded-full font-bold">완독</span>' : '<span class="text-[10px] px-1.5 py-0.5 bg-stone-100 text-stone-400 rounded-full">대기</span>'}
+                                    <button onclick="openPreviewModal(${day.day})" title="미리보기" style="background:rgba(61,79,65,0.08); border:none; width:22px; height:22px; border-radius:50%; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; font-size:12px; transition:background 0.15s; color:#3D4F41;" onmouseover="this.style.background='rgba(61,79,65,0.18)'" onmouseout="this.style.background='rgba(61,79,65,0.08)'">👁</button>
+                                </div>
+                            </div>
                         </div>`;
                 });
                 weekDiv.innerHTML = `<div class="p-3 font-bold text-sm flex justify-between ${isCurrentWeek ? 'bg-[#D4AF37]/10' : 'bg-stone-50'}"><span class="flex space-x-2"><span class="px-2 bg-stone-200 rounded text-[10px]">W${w}</span><span>${w}주차 통독</span></span></div><div class="grid grid-cols-1 md:grid-cols-6 gap-2 p-3">${dayCardsHTML}</div>`;
@@ -1175,3 +1186,341 @@
     }
 
     window.onload = function() { initApp(); }
+
+    // ═══════════════════════════════════════════════════
+    // PWA: Service Worker 등록
+    // ═══════════════════════════════════════════════════
+    (function registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => {
+                        console.log('[PWA] Service Worker 등록 성공:', reg.scope);
+                        // 업데이트 감지 시 토스트 알림
+                        reg.addEventListener('updatefound', () => {
+                            const newWorker = reg.installing;
+                            newWorker.addEventListener('statechange', () => {
+                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                    showPWAUpdateBanner();
+                                }
+                            });
+                        });
+                    })
+                    .catch(err => console.warn('[PWA] Service Worker 등록 실패:', err));
+            });
+        }
+    })();
+
+    // ═══════════════════════════════════════════════════
+    // PWA: 설치(A2HS) 배너
+    // ═══════════════════════════════════════════════════
+    let pwaInstallPrompt = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        pwaInstallPrompt = e;
+        showPWAInstallBanner();
+    });
+
+    window.addEventListener('appinstalled', () => {
+        hidePWABanner();
+        showToast('앱이 홈 화면에 설치되었습니다! 📱', 'success');
+    });
+
+    function showPWAInstallBanner() {
+        const existing = document.getElementById('pwa-install-banner');
+        if (existing) return;
+
+        const banner = document.createElement('div');
+        banner.id = 'pwa-install-banner';
+        banner.style.cssText = `
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; display: flex; align-items: center; gap: 12px;
+            background: linear-gradient(135deg, #3D4F41, #2A3B2E);
+            color: white; padding: 14px 20px; border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.35), 0 0 0 1px rgba(212,175,55,0.3);
+            font-family: 'Noto Sans KR', sans-serif; font-size: 13px;
+            max-width: calc(100vw - 40px); animation: slideUpFadeIn 0.4s ease;
+        `;
+        banner.innerHTML = `
+            <span style="font-size:28px">📖</span>
+            <div style="flex:1">
+                <div style="font-weight:700; font-size:13px; color:#F5D87A">홈 화면에 앱 추가</div>
+                <div style="font-size:11px; color:#c8d4c9; margin-top:2px">오프라인에서도 사용 가능합니다</div>
+            </div>
+            <button id="pwa-install-btn" style="
+                background: #D4AF37; color: #1a2e1d; border: none; padding: 8px 16px;
+                border-radius: 10px; font-size: 12px; font-weight: 700; cursor: pointer;
+                white-space: nowrap; transition: transform 0.15s;
+            " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">설치</button>
+            <button onclick="hidePWABanner()" style="
+                background: rgba(255,255,255,0.1); border: none; color: #aaa;
+                padding: 8px; border-radius: 8px; cursor: pointer; font-size: 16px; line-height: 1;
+            ">✕</button>
+        `;
+
+        if (!document.getElementById('pwa-banner-style')) {
+            const style = document.createElement('style');
+            style.id = 'pwa-banner-style';
+            style.textContent = `
+                @keyframes slideUpFadeIn {
+                    from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+                    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        document.body.appendChild(banner);
+
+        document.getElementById('pwa-install-btn').addEventListener('click', async () => {
+            if (!pwaInstallPrompt) return;
+            pwaInstallPrompt.prompt();
+            const { outcome } = await pwaInstallPrompt.userChoice;
+            if (outcome === 'accepted') {
+                showToast('앱 설치 중...', 'success');
+            }
+            pwaInstallPrompt = null;
+            hidePWABanner();
+        });
+    }
+
+    function showPWAUpdateBanner() {
+        showToast('새 버전이 있습니다. 페이지를 새로고침하세요! 🔄', 'info');
+    }
+
+    function hidePWABanner() {
+        const b = document.getElementById('pwa-install-banner');
+        if (b) {
+            b.style.animation = 'none';
+            b.style.opacity = '0';
+            b.style.transform = 'translateX(-50%) translateY(20px)';
+            b.style.transition = 'all 0.3s ease';
+            setTimeout(() => b.remove(), 300);
+        }
+    }
+
+    // ═══════════════════════════════════════════════════
+    // 미리보기 기능: 성경 범위 상세 미리보기 모달
+    // ═══════════════════════════════════════════════════
+    function initPreviewModal() {
+        if (document.getElementById('preview-modal')) return;
+
+        const modal = document.createElement('div');
+        modal.id = 'preview-modal';
+        modal.style.cssText = `
+            display: none; position: fixed; inset: 0; z-index: 8000;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.55); backdrop-filter: blur(6px);
+            padding: 16px; animation: fadeInBg 0.2s ease;
+        `;
+        modal.innerHTML = `
+            <div id="preview-card" style="
+                background: linear-gradient(160deg, #FDFCFA, #F3EFE9);
+                border-radius: 20px; width: 100%; max-width: 420px;
+                box-shadow: 0 24px 64px rgba(0,0,0,0.4), 0 0 0 1px rgba(212,175,55,0.25);
+                overflow: hidden; font-family: 'Noto Sans KR', sans-serif;
+                transform: translateY(0); animation: slideUpCard 0.3s cubic-bezier(.22,1,.36,1);
+            ">
+                <!-- 헤더 -->
+                <div style="
+                    background: linear-gradient(135deg, #3D4F41 0%, #2A3B2E 100%);
+                    padding: 20px 20px 16px; position: relative;
+                ">
+                    <div style="display:flex; align-items:center; gap:12px">
+                        <div style="
+                            background: rgba(212,175,55,0.2); border: 1px solid rgba(212,175,55,0.4);
+                            border-radius: 12px; padding: 10px 14px; font-size: 22px; line-height:1;
+                        ">📖</div>
+                        <div style="flex:1">
+                            <div id="preview-day-label" style="color:#D4AF37; font-size:11px; font-weight:700; letter-spacing:0.05em; text-transform:uppercase">Day 1</div>
+                            <div id="preview-date-label" style="color:#F3EFE9; font-size:16px; font-weight:800; margin-top:2px; font-family:'Nanum Myeongjo',serif">날짜</div>
+                        </div>
+                        <button onclick="closePreviewModal()" style="
+                            background: rgba(255,255,255,0.1); border: none; color: #ccc;
+                            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
+                            font-size: 16px; line-height: 1; display: flex; align-items: center; justify-content: center;
+                            transition: background 0.2s;
+                        " onmouseover="this.style.background='rgba(255,255,255,0.2)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">✕</button>
+                    </div>
+                    <div id="preview-week-badge" style="
+                        display: inline-block; margin-top: 12px;
+                        background: rgba(212,175,55,0.15); border: 1px solid rgba(212,175,55,0.3);
+                        color: #D4AF37; font-size: 11px; padding: 3px 10px; border-radius: 20px;
+                    ">1주차</div>
+                </div>
+
+                <!-- 본문 -->
+                <div style="padding: 20px">
+                    <!-- 오늘의 성경 범위 -->
+                    <div style="background: #fff; border: 1px solid #E9E4DC; border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04)">
+                        <div style="font-size: 10px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px">오늘의 성경 범위</div>
+                        <div id="preview-range" style="font-size: 15px; font-weight: 700; color: #1C2821; line-height: 1.5; word-break: keep-all"></div>
+                        <div id="preview-books" style="margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px"></div>
+                    </div>
+
+                    <!-- 완독 현황 -->
+                    <div style="background: #fff; border: 1px solid #E9E4DC; border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04)">
+                        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 10px">
+                            <div style="font-size: 10px; font-weight: 700; color: #9CA3AF; text-transform: uppercase; letter-spacing: 0.08em">완독 현황</div>
+                            <div id="preview-done-rate" style="font-size: 11px; font-weight: 700; color: #3D4F41; background: #F0FFF4; border-radius: 20px; padding: 2px 10px">0%</div>
+                        </div>
+                        <div style="background: #F3EFE9; border-radius: 100px; height: 8px; overflow:hidden; margin-bottom:10px">
+                            <div id="preview-progress-bar" style="height:100%; background: linear-gradient(90deg, #3D4F41, #6B9E78); border-radius:100px; transition: width 0.6s cubic-bezier(.22,1,.36,1); width:0%"></div>
+                        </div>
+                        <div id="preview-done-list" style="display:flex; flex-wrap:wrap; gap:6px; max-height: 100px; overflow-y:auto"></div>
+                    </div>
+
+                    <!-- 액션 버튼 -->
+                    <div id="preview-action-area" style="display:flex; gap:10px"></div>
+                </div>
+            </div>
+            <style>
+                @keyframes fadeInBg { from{opacity:0} to{opacity:1} }
+                @keyframes slideUpCard {
+                    from { opacity:0; transform: translateY(30px) scale(0.96); }
+                    to   { opacity:1; transform: translateY(0) scale(1); }
+                }
+            </style>
+        `;
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closePreviewModal();
+        });
+
+        document.body.appendChild(modal);
+    }
+
+    function openPreviewModal(dayIndex) {
+        initPreviewModal();
+        const schedule = getBibleSchedule();
+        const item = schedule[dayIndex - 1];
+        if (!item) return;
+
+        const modal = document.getElementById('preview-modal');
+        const totalMembers = state.members.length;
+
+        // 완독자 계산
+        const doneMembers = state.members.filter(m => {
+            const prog = state.progress[m.id];
+            return prog && prog.completedDays && prog.completedDays.map(Number).includes(dayIndex);
+        });
+        const doneRate = totalMembers > 0 ? Math.round((doneMembers.length / totalMembers) * 100) : 0;
+
+        // 헤더
+        document.getElementById('preview-day-label').textContent = `Day ${dayIndex}`;
+        document.getElementById('preview-date-label').textContent = `${item.date} (${item.week}주차 ${dayIndex - (item.week-1)*6}일)`;
+        document.getElementById('preview-week-badge').textContent = `${item.week}주차`;
+
+        // 성경 범위
+        document.getElementById('preview-range').textContent = item.range;
+
+        // 성경 책 뱃지 추출
+        const booksEl = document.getElementById('preview-books');
+        booksEl.innerHTML = '';
+        const books = item.range.split(/\//).map(s => {
+            const match = s.trim().match(/^([가-힣A-Za-z·]+(?:\s[가-힣A-Za-z]+)?)/);
+            return match ? match[1].trim() : s.trim();
+        }).filter(Boolean);
+        const uniqueBooks = [...new Set(books)];
+        uniqueBooks.forEach(book => {
+            const badge = document.createElement('span');
+            badge.style.cssText = `
+                display:inline-flex; align-items:center; gap:4px;
+                background: linear-gradient(135deg, #3D4F41, #2A3B2E);
+                color: #F5D87A; font-size: 11px; font-weight: 700;
+                padding: 4px 10px; border-radius: 20px;
+            `;
+            badge.textContent = book;
+            booksEl.appendChild(badge);
+        });
+
+        // 완독 현황
+        document.getElementById('preview-done-rate').textContent = `${doneRate}%`;
+        document.getElementById('preview-progress-bar').style.width = '0%';
+        setTimeout(() => {
+            document.getElementById('preview-progress-bar').style.width = `${doneRate}%`;
+        }, 50);
+
+        const doneListEl = document.getElementById('preview-done-list');
+        doneListEl.innerHTML = '';
+        if (doneMembers.length === 0) {
+            doneListEl.innerHTML = '<span style="font-size:12px; color:#9CA3AF">아직 완독한 성도가 없습니다</span>';
+        } else {
+            doneMembers.forEach(m => {
+                const chip = document.createElement('span');
+                chip.style.cssText = `
+                    display:inline-flex; align-items:center; gap:4px;
+                    background: #F0FFF4; border: 1px solid #BBF7D0;
+                    color: #166534; font-size: 11px; font-weight: 600;
+                    padding: 3px 8px; border-radius: 20px;
+                `;
+                chip.textContent = `${m.avatar || '✅'} ${m.name}`;
+                doneListEl.appendChild(chip);
+            });
+        }
+
+        // 액션 버튼
+        const actionArea = document.getElementById('preview-action-area');
+        actionArea.innerHTML = '';
+
+        // 오늘 통독 탭 이동 버튼
+        const goBtn = document.createElement('button');
+        goBtn.style.cssText = `
+            flex:1; background: linear-gradient(135deg, #3D4F41, #2A3B2E);
+            color: white; border: none; padding: 12px; border-radius: 12px;
+            font-size: 13px; font-weight: 700; cursor: pointer;
+            transition: transform 0.2s; font-family: 'Noto Sans KR', sans-serif;
+            display:flex; align-items:center; justify-content:center; gap:6px;
+        `;
+        goBtn.innerHTML = '📅 이 날로 이동';
+        goBtn.onmouseover = () => goBtn.style.transform = 'scale(1.02)';
+        goBtn.onmouseout = () => goBtn.style.transform = '';
+        goBtn.onclick = () => {
+            state.selectedDay = dayIndex;
+            closePreviewModal();
+            changeTab('today');
+        };
+        actionArea.appendChild(goBtn);
+
+        // 로그인한 사용자: 완독 체크 버튼
+        if (state.currentUser) {
+            const myProg = state.progress[state.currentUser.id];
+            const isDone = myProg && myProg.completedDays && myProg.completedDays.map(Number).includes(dayIndex);
+            const checkBtn = document.createElement('button');
+            checkBtn.style.cssText = `
+                background: ${isDone ? '#FEF2F2' : '#F0FFF4'};
+                color: ${isDone ? '#DC2626' : '#16A34A'};
+                border: 1px solid ${isDone ? '#FECACA' : '#BBF7D0'};
+                padding: 12px 16px; border-radius: 12px;
+                font-size: 13px; font-weight: 700; cursor: pointer;
+                transition: transform 0.2s; font-family: 'Noto Sans KR', sans-serif;
+                display:flex; align-items:center; gap:6px; white-space:nowrap;
+            `;
+            checkBtn.innerHTML = isDone ? '↩ 취소' : '✅ 완독 체크';
+            checkBtn.onmouseover = () => checkBtn.style.transform = 'scale(1.02)';
+            checkBtn.onmouseout = () => checkBtn.style.transform = '';
+            checkBtn.onclick = async () => {
+                await handleToggleRead(dayIndex);
+                closePreviewModal();
+                setTimeout(() => openPreviewModal(dayIndex), 100);
+            };
+            actionArea.appendChild(checkBtn);
+        }
+
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closePreviewModal() {
+        const modal = document.getElementById('preview-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    }
+
+    // 전역 노출
+    window.openPreviewModal = openPreviewModal;
+    window.closePreviewModal = closePreviewModal;
+    window.hidePWABanner = hidePWABanner;

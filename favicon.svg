@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#3D4F41"/>
+      <stop offset="100%" stop-color="#2A3B2E"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F5D87A"/>
+      <stop offset="100%" stop-color="#D4AF37"/>
+    </linearGradient>
+  </defs>
+  <!-- Background circle -->
+  <circle cx="32" cy="32" r="32" fill="url(#bg)"/>
+  <!-- Book shape -->
+  <rect x="10" y="16" width="44" height="34" rx="3" ry="3" fill="url(#gold)" opacity="0.15"/>
+  <!-- Book pages left -->
+  <path d="M12 18 Q12 12 18 12 L30 12 L30 46 Q20 44 12 46 Z" fill="#F3EFE9" stroke="url(#gold)" stroke-width="0.8"/>
+  <!-- Book pages right -->
+  <path d="M34 12 L46 12 Q52 12 52 18 L52 46 Q44 44 34 46 Z" fill="#F3EFE9" stroke="url(#gold)" stroke-width="0.8"/>
+  <!-- Spine -->
+  <rect x="29" y="12" width="6" height="34" rx="1" fill="url(#gold)" opacity="0.9"/>
+  <!-- Cross on left page -->
+  <line x1="21" y1="22" x2="21" y2="36" stroke="#D4AF37" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="15" y1="26" x2="27" y2="26" stroke="#D4AF37" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Lines on right page -->
+  <line x1="36" y1="22" x2="49" y2="22" stroke="#B8A99A" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+  <line x1="36" y1="27" x2="49" y2="27" stroke="#B8A99A" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+  <line x1="36" y1="32" x2="49" y2="32" stroke="#B8A99A" stroke-width="1.2" stroke-linecap="round" opacity="0.7"/>
+  <line x1="36" y1="37" x2="45" y2="37" stroke="#B8A99A" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+</svg>
