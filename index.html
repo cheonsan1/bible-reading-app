@@ -375,7 +375,7 @@
                 <h2 class="text-2xl font-bold text-[#3D4F41] holy-font flex items-center gap-2"><i class="fa-solid fa-table text-emerald-600"></i> 구글 시트 & 설문 연동 대시보드</h2>
                 <p class="text-xs text-stone-500 mt-1">구글 폼 취합 통계처럼 일자별 데이터를 취합하고, 구글 시트처럼 마스터 그리드를 수동 제어합니다.</p>
             </div>
-            <div class="flex bg-stone-100 p-1 rounded-lg text-xs font-semibold">
+            <div class="flex flex-wrap gap-1 bg-stone-100 p-1 rounded-lg text-xs font-semibold">
                 <button onclick="changeSheetSubTab('forms')" id="subtab-forms" class="px-3 py-1.5 rounded-md transition-all bg-white shadow text-slate-800"><i class="fa-solid fa-list-check mr-1 text-purple-600"></i> 설문 취합 (Forms)</button>
                 <button onclick="changeSheetSubTab('sheets')" id="subtab-sheets" class="px-3 py-1.5 rounded-md transition-all text-slate-500"><i class="fa-solid fa-table-cells mr-1 text-emerald-600"></i> 마스터 격자판 (Sheets)</button>
                 <button onclick="changeSheetSubTab('integration')" id="subtab-integration" class="px-3 py-1.5 rounded-md transition-all text-slate-500"><i class="fa-solid fa-link mr-1 text-blue-600"></i> 자동 연동 가이드</button>
@@ -445,7 +445,7 @@
                     <button onclick="handleDownloadCsv()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-transform hover:-translate-y-px"><i class="fa-solid fa-file-excel mr-1"></i> 시트 백업용 CSV 다운로드</button>
                 </div>
             </div>
-            <div class="flex gap-2">
+            <div class="flex flex-wrap gap-2">
                 <input type="text" id="grid-search" oninput="renderMasterGrid()" placeholder="성명 검색..." class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
                 <select id="grid-group-filter" onchange="renderMasterGrid()" class="p-2 text-xs rounded-lg border border-stone-200 bg-stone-50 focus:outline-none">
                     <option value="all">전체 조 보기</option>
@@ -458,7 +458,7 @@
                 <span class="text-[10px] text-stone-400 self-center">💡 셀을 터치하면 성도 상태가 토글(녹색=완독, 백색=미완독)됩니다.</span>
             </div>
             <div class="overflow-auto max-h-[500px] border border-stone-200 rounded-lg custom-scrollbar">
-                <table class="w-full text-left border-collapse text-xs table-fixed">
+                <table class="min-w-max text-left border-collapse text-xs">
                     <thead class="bg-stone-50 sticky top-0 z-20 shadow-sm">
                         <tr id="grid-header-tr">
                             <!-- 헤더 동적 생성 -->
@@ -571,7 +571,7 @@ function doPost(e) {
                     <p class="text-xs text-stone-500 mb-4">줄바꿈을 기준으로 여러 성도의 성함을 한 번에 등록해 통독반 명단을 바로 구축합니다.</p>
                     <div class="space-y-3">
                         <textarea id="admin-names" rows="4" placeholder="홍길동&#10;이순신&#10;신사임당" class="w-full p-2 text-xs rounded border border-stone-300 focus:outline-none focus:ring-1"></textarea>
-                        <div class="flex space-x-2">
+                        <div class="flex flex-col sm:flex-row gap-2">
                             <input id="admin-group" type="text" placeholder="지정할 조명 (예: 소망 2조)" class="p-2 text-xs rounded border border-stone-300 flex-1">
                             <button onclick="submitBulkMembers()" class="px-4 py-2 bg-[#3D4F41] text-white text-xs font-bold rounded min-w-[80px]">추가 등록</button>
                         </div>
@@ -600,7 +600,7 @@ function doPost(e) {
                     <button id="admin-bulk-delete-btn" onclick="executeBulkDelete()" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg shadow-sm transition-transform hover:-translate-y-px hidden"><i class="fa-solid fa-trash-can mr-1"></i> <span>선택 삭제 (0명)</span></button>
                 </div>
                 <div class="overflow-x-auto border border-stone-200 rounded-lg">
-                    <table class="w-full text-left border-collapse text-xs">
+                    <table class="w-full min-w-max whitespace-nowrap text-left border-collapse text-xs">
                         <thead>
                             <tr class="bg-stone-100 text-stone-700">
                                 <th class="p-3 border-b text-center w-12">
