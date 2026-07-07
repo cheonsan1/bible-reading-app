@@ -1049,8 +1049,7 @@
         const schedule = getBibleSchedule();
         let headerHTML = `
             <th class="p-2 border-b border-r bg-stone-50 text-stone-700 font-bold text-center w-24 sticky left-0 z-30">이름</th>
-            <th class="p-2 border-b border-r bg-stone-50 text-stone-500 font-bold text-center w-24 sticky left-24 z-30">소속 조</th>
-            <th class="p-2 border-b border-r bg-stone-50 text-stone-700 font-bold text-center w-20 sticky left-48 z-30">완독일수</th>
+            <th class="p-2 border-b border-r bg-stone-50 text-stone-700 font-bold text-center w-20 sticky left-24 z-30">완독일수</th>
         `;
         schedule.slice(0, 150).forEach(day => {
             headerHTML += `
@@ -1078,8 +1077,7 @@
             
             let rowHTML = `
                 <td class="p-2 border-r text-center font-bold text-stone-800 bg-white sticky left-0 z-10 w-24">${member.name}</td>
-                <td class="p-2 border-r text-center text-stone-500 bg-white sticky left-24 z-10 w-24 truncate">${member.group}</td>
-                <td class="p-2 border-r text-center font-black text-slate-800 bg-white sticky left-48 z-10 w-20">${completed.length} 일</td>
+                <td class="p-2 border-r text-center font-black text-slate-800 bg-white sticky left-24 z-10 w-20">${completed.length} 일</td>
             `;
 
             schedule.slice(0, 150).forEach(day => {
