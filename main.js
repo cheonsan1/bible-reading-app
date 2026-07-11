@@ -509,12 +509,14 @@
         let existingPost = isEditing ? state.transcriptions.find(t => t.id === currentId) : null;
 
         let finalImageUrl = '';
-        if (state.isSupabaseActive && (state.uploadedImageBase64 || hasCanvasDrawn)) {
-            let srcData = state.uploadedImageBase64;
-            if (!srcData && hasCanvasDrawn && canvas) srcData = canvas.toDataURL('image/jpeg', 0.85);
-            if (srcData) finalImageUrl = await supabaseUploadStorage('chunsan-photos', `public/grace_${state.currentUser.id}_${Date.now()}.jpg`, srcData) || '';
+        let srcData = state.uploadedImageBase64;
+        if (!srcData && hasCanvasDrawn && canvas) srcData = canvas.toDataURL('image/jpeg', 0.85);
+
+        if (state.isSupabaseActive && srcData) {
+            finalImageUrl = await supabaseUploadStorage('chunsan-photos', `public/grace_${state.currentUser.id}_${Date.now()}.jpg`, srcData);
+            if (!finalImageUrl) finalImageUrl = srcData; // Supabase upload failed, fallback to local base64
         } else {
-            finalImageUrl = state.uploadedImageBase64 || (hasCanvasDrawn && canvas ? canvas.toDataURL('image/jpeg', 0.8) : '');
+            finalImageUrl = srcData || '';
         }
 
         if (isEditing && existingPost && !finalImageUrl && !hasCanvasDrawn && !state.uploadedImageBase64) {
