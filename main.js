@@ -861,6 +861,17 @@
             } else bulkBtn.classList.add('hidden');
         }
 
+        const graceVerseSelect = document.getElementById('grace-verse-select');
+        if (graceVerseSelect && graceVerseSelect.options.length === 0) {
+            schedule.slice(0, 150).forEach(day => {
+                const opt = document.createElement('option');
+                opt.value = day.range;
+                opt.textContent = `Day ${day.day} (${day.date}) - ${day.range}`;
+                graceVerseSelect.appendChild(opt);
+            });
+            if (activeDayInfo) graceVerseSelect.value = activeDayInfo.range;
+        }
+
         // 7. 설문 취합 (Forms) 탭 갱신
         const formsDaySelect = document.getElementById('forms-day-select');
         if (state.currentTab === 'admin' && state.sheetSubTab === 'forms' && formsDaySelect) {
