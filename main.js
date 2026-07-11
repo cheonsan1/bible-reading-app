@@ -453,7 +453,7 @@
     }
 
     // 캔버스 로직
-    let canvas, ctx, isDrawing = false, penColor = '#222522';
+    let canvas, ctx, isDrawing = false, hasCanvasDrawn = false, penColor = '#222522';
     function initGraceCanvas() {
         canvas = document.getElementById('grace-drawing-canvas');
         if (!canvas) return;
@@ -466,11 +466,11 @@
         canvas.ontouchmove = (e) => { if (e.touches.length > 0) drawLine(e.touches[0].clientX, e.touches[0].clientY); };
         canvas.ontouchend = stopDraw;
     }
-    function startDraw(clientX, clientY) { const rect = canvas.getBoundingClientRect(); ctx.beginPath(); ctx.moveTo(clientX - rect.left, clientY - rect.top); isDrawing = true; }
+    function startDraw(clientX, clientY) { const rect = canvas.getBoundingClientRect(); ctx.beginPath(); ctx.moveTo(clientX - rect.left, clientY - rect.top); isDrawing = true; hasCanvasDrawn = true; }
     function drawLine(clientX, clientY) { if (!isDrawing) return; const rect = canvas.getBoundingClientRect(); ctx.lineTo(clientX - rect.left, clientY - rect.top); ctx.stroke(); }
     function stopDraw() { isDrawing = false; }
     function setGracePenColor(color) { penColor = color; if (ctx) ctx.strokeStyle = color; }
-    function resetGraceCanvas() { if (canvas) ctx.clearRect(0, 0, canvas.width, canvas.height); state.uploadedImageBase64 = ''; document.getElementById('canvas-image-preview-layer').classList.add('hidden'); }
+    function resetGraceCanvas() { if (canvas) ctx.clearRect(0, 0, canvas.width, canvas.height); hasCanvasDrawn = false; state.uploadedImageBase64 = ''; document.getElementById('canvas-image-preview-layer').classList.add('hidden'); }
     function clearGraceImage() { state.uploadedImageBase64 = ''; document.getElementById('canvas-image-preview-layer').classList.add('hidden'); }
 
     function handleGraceFileLoad(event) {
@@ -504,18 +504,18 @@
         if (!text && !state.uploadedImageBase64) return showToast("소감을 작성하거나 사진을 등록하세요.", "warning");
 
         let finalImageUrl = '';
-        if (state.isSupabaseActive && (state.uploadedImageBase64 || canvas)) {
+        if (state.isSupabaseActive && (state.uploadedImageBase64 || hasCanvasDrawn)) {
             let srcData = state.uploadedImageBase64;
-            if (!srcData && canvas) srcData = canvas.toDataURL('image/jpeg', 0.85);
+            if (!srcData && hasCanvasDrawn && canvas) srcData = canvas.toDataURL('image/jpeg', 0.85);
             if (srcData) finalImageUrl = await supabaseUploadStorage('chunsan-photos', `public/grace_${state.currentUser.id}_${Date.now()}.jpg`, srcData) || '';
         } else {
-            finalImageUrl = state.uploadedImageBase64 || (canvas ? canvas.toDataURL('image/jpeg', 0.8) : '');
+            finalImageUrl = state.uploadedImageBase64 || (hasCanvasDrawn && canvas ? canvas.toDataURL('image/jpeg', 0.8) : '');
         }
 
         const newPost = {
             id: `tr_${Date.now()}`, memberId: state.currentUser.id, memberName: state.currentUser.name,
             week: Math.ceil(state.selectedDay / 6), verse: verse, content: text,
-            imageUrl: finalImageUrl || 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80',
+            imageUrl: finalImageUrl || '',
             createdAt: new Date().toISOString(), likes: []
         };
         state.transcriptions.unshift(newPost);
@@ -1009,6 +1009,49 @@
                         </div>
                     `;
                     jujuControlList.appendChild(div);
+                });
+            }
+        }
+
+        // 9. 은혜 나눔터 피드 렌더링
+        const graceFeedContainer = document.getElementById('grace-feed-container');
+        if (state.currentTab === 'grace' && graceFeedContainer) {
+            graceFeedContainer.innerHTML = '';
+            if (state.transcriptions.length === 0) {
+                graceFeedContainer.innerHTML = `<div class="col-span-full text-center py-10 text-stone-400 text-sm">아직 등록된 은혜의 말씀이 없습니다. 첫 번째로 묵상을 나눠보세요!</div>`;
+            } else {
+                state.transcriptions.forEach(t => {
+                    const card = document.createElement('div');
+                    card.className = "bg-white border border-stone-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col";
+                    
+                    let imageHTML = '';
+                    if (t.imageUrl) {
+                        imageHTML = `<div class="w-full h-48 bg-stone-100 overflow-hidden relative">
+                                        <img src="${t.imageUrl}" class="w-full h-full object-cover" alt="묵상 이미지" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80'">
+                                     </div>`;
+                    } else {
+                        imageHTML = `<div class="w-full h-32 bg-[#3D4F41]/5 flex items-center justify-center p-4">
+                                        <div class="text-[#3D4F41]/20"><i class="fa-solid fa-quote-left text-3xl"></i></div>
+                                     </div>`;
+                    }
+
+                    const safeContent = (t.content || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
+                    
+                    card.innerHTML = `
+                        ${imageHTML}
+                        <div class="p-4 flex flex-col flex-grow">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[10px] font-bold bg-[#D4AF37]/20 text-stone-700 px-2 py-0.5 rounded-full">${t.verse}</span>
+                                <span class="text-[10px] text-stone-400">${new Date(t.createdAt).toLocaleDateString()}</span>
+                            </div>
+                            <p class="text-xs text-stone-700 font-medium line-clamp-4 leading-relaxed mb-4 flex-grow">${safeContent}</p>
+                            <div class="flex items-center space-x-2 border-t border-stone-100 pt-3">
+                                <div class="w-6 h-6 bg-stone-200 rounded-full flex items-center justify-center text-[10px]">👤</div>
+                                <span class="text-xs font-bold text-stone-800">${t.memberName}</span>
+                            </div>
+                        </div>
+                    `;
+                    graceFeedContainer.appendChild(card);
                 });
             }
         }
