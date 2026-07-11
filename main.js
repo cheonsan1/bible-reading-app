@@ -454,6 +454,7 @@
 
     // 캔버스 로직
     let canvas, ctx, isDrawing = false, hasCanvasDrawn = false, penColor = '#222522';
+    window.editingTranscriptionId = null;
     function initGraceCanvas() {
         canvas = document.getElementById('grace-drawing-canvas');
         if (!canvas) return;
@@ -503,6 +504,10 @@
         const text = document.getElementById('grace-text-content').value.trim();
         if (!text && !state.uploadedImageBase64) return showToast("소감을 작성하거나 사진을 등록하세요.", "warning");
 
+        const isEditing = !!window.editingTranscriptionId;
+        const currentId = window.editingTranscriptionId;
+        let existingPost = isEditing ? state.transcriptions.find(t => t.id === currentId) : null;
+
         let finalImageUrl = '';
         if (state.isSupabaseActive && (state.uploadedImageBase64 || hasCanvasDrawn)) {
             let srcData = state.uploadedImageBase64;
@@ -512,25 +517,40 @@
             finalImageUrl = state.uploadedImageBase64 || (hasCanvasDrawn && canvas ? canvas.toDataURL('image/jpeg', 0.8) : '');
         }
 
-        const newPost = {
-            id: `tr_${Date.now()}`, memberId: state.currentUser.id, memberName: state.currentUser.name,
-            week: Math.ceil(state.selectedDay / 6), verse: verse, content: text,
-            imageUrl: finalImageUrl || '',
-            createdAt: new Date().toISOString(), likes: []
-        };
-        state.transcriptions.unshift(newPost);
+        if (isEditing && existingPost && !finalImageUrl && !hasCanvasDrawn && !state.uploadedImageBase64) {
+            finalImageUrl = existingPost.imageUrl;
+        }
+
+        let postToSync;
+        if (isEditing && existingPost) {
+            existingPost.verse = verse;
+            existingPost.content = text;
+            existingPost.imageUrl = finalImageUrl;
+            window.editingTranscriptionId = null;
+            if (document.getElementById('btn-submit-grace')) document.getElementById('btn-submit-grace').textContent = "나눔터에 묵상 등록";
+            postToSync = existingPost;
+        } else {
+            postToSync = {
+                id: `tr_${Date.now()}`, memberId: state.currentUser.id, memberName: state.currentUser.name,
+                week: Math.ceil(state.selectedDay / 6), verse: verse, content: text,
+                imageUrl: finalImageUrl || '',
+                createdAt: new Date().toISOString(), likes: []
+            };
+            state.transcriptions.unshift(postToSync);
+        }
+
         lsSet('chunsan_transcriptions', state.transcriptions);
 
         if (state.isSupabaseActive) {
-            await supabaseFetch('chunsan_transcriptions', 'POST', {
-                id: newPost.id, member_id: newPost.memberId, member_name: newPost.memberName,
-                week: newPost.week, verse: newPost.verse, content: newPost.content, image_url: newPost.imageUrl, likes: []
+            await supabaseFetch('chunsan_transcriptions', 'UPSERT', {
+                id: postToSync.id, member_id: postToSync.memberId, member_name: postToSync.memberName,
+                week: postToSync.week, verse: postToSync.verse, content: postToSync.content, image_url: postToSync.imageUrl, likes: postToSync.likes || []
             });
         }
-        sendToGoogleSheets({ action: 'transcription', memberName: state.currentUser.name, group: state.currentUser.group, verse: newPost.verse, content: newPost.content, imageUrl: newPost.imageUrl });
+        sendToGoogleSheets({ action: 'transcription', memberName: state.currentUser.name, group: state.currentUser.group, verse: postToSync.verse, content: postToSync.content, imageUrl: postToSync.imageUrl });
 
         document.getElementById('grace-text-content').value = ''; resetGraceCanvas();
-        showToast("필사가 업로드되었습니다!", "success");
+        showToast(isEditing ? "묵상이 수정되었습니다!" : "필사가 업로드되었습니다!", "success");
         applyStateToDOM();
     }
 
@@ -1026,13 +1046,26 @@
                     
                     let imageHTML = '';
                     if (t.imageUrl) {
-                        imageHTML = `<div class="w-full h-48 bg-stone-100 overflow-hidden relative">
-                                        <img src="${t.imageUrl}" class="w-full h-full object-cover" alt="묵상 이미지" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80'">
+                        imageHTML = `<div class="w-full h-48 bg-stone-100 overflow-hidden relative cursor-pointer group" onclick="openImageModal('${t.imageUrl}')">
+                                        <img src="${t.imageUrl}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt="묵상 이미지" onerror="this.src='https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=400&q=80'">
+                                        <div class="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                            <i class="fa-solid fa-magnifying-glass-plus text-white text-3xl drop-shadow-md"></i>
+                                        </div>
                                      </div>`;
                     } else {
                         imageHTML = `<div class="w-full h-32 bg-[#3D4F41]/5 flex items-center justify-center p-4">
                                         <div class="text-[#3D4F41]/20"><i class="fa-solid fa-quote-left text-3xl"></i></div>
                                      </div>`;
+                    }
+
+                    let actionBtns = '';
+                    if (state.currentUser && state.currentUser.id === t.memberId) {
+                        actionBtns = `
+                            <div class="flex gap-2">
+                                <button onclick="editGraceTranscription('${t.id}')" class="text-[10px] px-2 py-1 bg-stone-100 text-stone-600 rounded hover:bg-stone-200 transition-colors">수정</button>
+                                <button onclick="deleteGraceTranscription('${t.id}')" class="text-[10px] px-2 py-1 bg-rose-50 text-rose-600 rounded hover:bg-rose-100 transition-colors">삭제</button>
+                            </div>
+                        `;
                     }
 
                     const safeContent = (t.content || "").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/\n/g, "<br>");
@@ -1045,9 +1078,12 @@
                                 <span class="text-[10px] text-stone-400">${new Date(t.createdAt).toLocaleDateString()}</span>
                             </div>
                             <p class="text-xs text-stone-700 font-medium line-clamp-4 leading-relaxed mb-4 flex-grow">${safeContent}</p>
-                            <div class="flex items-center space-x-2 border-t border-stone-100 pt-3">
-                                <div class="w-6 h-6 bg-stone-200 rounded-full flex items-center justify-center text-[10px]">👤</div>
-                                <span class="text-xs font-bold text-stone-800">${t.memberName}</span>
+                            <div class="flex items-center justify-between border-t border-stone-100 pt-3">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-6 h-6 bg-stone-200 rounded-full flex items-center justify-center text-[10px]">👤</div>
+                                    <span class="text-xs font-bold text-stone-800">${t.memberName}</span>
+                                </div>
+                                ${actionBtns}
                             </div>
                         </div>
                     `;
@@ -1060,6 +1096,56 @@
     }
 
     // --- 복원된 기능 모음 ---
+
+window.openImageModal = function(url) {
+    let modal = document.getElementById('image-viewer-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'image-viewer-modal';
+        modal.className = "fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 hidden";
+        modal.innerHTML = `
+            <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white hover:text-stone-300 w-10 h-10 flex items-center justify-center bg-black/50 rounded-full transition-colors"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <img id="image-viewer-img" src="" class="max-w-full max-h-full rounded-lg shadow-2xl object-contain">
+        `;
+        document.body.appendChild(modal);
+    }
+    document.getElementById('image-viewer-img').src = url;
+    modal.classList.remove('hidden');
+}
+
+window.closeImageModal = function() {
+    const modal = document.getElementById('image-viewer-modal');
+    if (modal) modal.classList.add('hidden');
+}
+
+window.editGraceTranscription = function(id) {
+    const t = state.transcriptions.find(x => x.id === id);
+    if (!t) return;
+    window.editingTranscriptionId = id;
+    
+    document.getElementById('grace-verse-select').value = t.verse;
+    document.getElementById('grace-text-content').value = t.content;
+    
+    const btn = document.getElementById('btn-submit-grace');
+    if (btn) btn.textContent = "묵상 수정 완료";
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showToast("수정 모드로 전환되었습니다.", "info");
+}
+
+window.deleteGraceTranscription = async function(id) {
+    if (!confirm("정말 이 묵상을 삭제하시겠습니까?")) return;
+    
+    state.transcriptions = state.transcriptions.filter(t => t.id !== id);
+    lsSet('chunsan_transcriptions', state.transcriptions);
+    
+    if (state.isSupabaseActive) {
+        await supabaseFetch('chunsan_transcriptions', 'DELETE', null, '?id=eq.' + id);
+    }
+    
+    showToast("삭제되었습니다.", "success");
+    applyStateToDOM();
+}
 
     window.handleFormsDayChange = function(val) {
         state.formsSelectedDay = val;
