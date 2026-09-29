@@ -101,7 +101,26 @@
 
     function getBibleSchedule() { return generateBibleSchedule(state.campaignStartDate); }
     function lsGet(key, fallback) { const item = localStorage.getItem(key); return item ? JSON.parse(item) : fallback; }
-    function lsSet(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+    function lsSet(key, value) {
+        try {
+            if (key === 'chunsan_transcriptions' && Array.isArray(value)) {
+                // Base64 이미지는 수 메가바이트에 달해 브라우저 localStorage 5MB 한도를 초과합니다.
+                // 로컬 캐시에는 대용량 Base64 이미지를 제외한 메타데이터만 안전하게 캐싱합니다.
+                const safeList = value.map(item => ({
+                    ...item,
+                    imageUrl: (item.imageUrl && item.imageUrl.startsWith('data:')) ? '' : item.imageUrl
+                }));
+                localStorage.setItem(key, JSON.stringify(safeList));
+                return;
+            }
+            localStorage.setItem(key, JSON.stringify(value));
+        } catch (e) {
+            console.warn(`localStorage setItem failed for "${key}":`, e);
+            try {
+                if (key === 'chunsan_transcriptions') localStorage.removeItem(key);
+            } catch (ignore) {}
+        }
+    }
 
     async function supabaseFetch(table, method = 'GET', body = null, queryParams = '') {
         if (!state.supabaseUrl || !state.supabaseAnonKey) return null;
@@ -151,13 +170,20 @@
     }
 
     async function sendToGoogleSheets(payload) {
-        if (!state.googleWebAppUrl) return;
+        if (!state.googleWebAppUrl) {
+            console.warn('구글 시트 연동 URL(state.googleWebAppUrl)이 설정되어 있지 않습니다.');
+            return;
+        }
         try {
+            const safePayload = { ...payload };
+            if (safePayload.imageUrl && safePayload.imageUrl.startsWith('data:')) {
+                safePayload.imageUrl = '[필사 이미지 첨부됨]';
+            }
             await fetch(state.googleWebAppUrl, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-                body: JSON.stringify(payload)
+                body: JSON.stringify(safePayload)
             });
         } catch (e) {
             console.error('구글 시트 연동 에러:', e);
@@ -541,14 +567,17 @@
             state.transcriptions.unshift(postToSync);
         }
 
-        lsSet('chunsan_transcriptions', state.transcriptions);
-
         if (state.isSupabaseActive) {
-            await supabaseFetch('chunsan_transcriptions', 'UPSERT', {
-                id: postToSync.id, member_id: postToSync.memberId, member_name: postToSync.memberName,
-                week: postToSync.week, verse: postToSync.verse, content: postToSync.content, image_url: postToSync.imageUrl, likes: postToSync.likes || []
-            });
+            try {
+                await supabaseFetch('chunsan_transcriptions', 'UPSERT', {
+                    id: postToSync.id, member_id: postToSync.memberId, member_name: postToSync.memberName,
+                    week: postToSync.week, verse: postToSync.verse, content: postToSync.content, image_url: postToSync.imageUrl, likes: postToSync.likes || []
+                });
+            } catch (err) {
+                console.error("Supabase 필사 업로드 에러:", err);
+            }
         }
+        lsSet('chunsan_transcriptions', state.transcriptions);
         sendToGoogleSheets({ action: 'transcription', memberName: state.currentUser.name, group: state.currentUser.group, verse: postToSync.verse, content: postToSync.content, imageUrl: postToSync.imageUrl });
 
         document.getElementById('grace-text-content').value = ''; resetGraceCanvas();
